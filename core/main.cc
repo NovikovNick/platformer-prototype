@@ -194,7 +194,7 @@ int main() {
 
     window.clear(kBGColor);
     window.draw(grid);
-    // window.draw(visualizer);
+    window.draw(visualizer);
     window.draw(info);
     for (const auto& it : platform_shapes) window.draw(it);
     window.draw(p0);

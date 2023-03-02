@@ -1,6 +1,6 @@
 # Platformer prototype
 #### Includes submodules:
 * fpm
-* [Eigel 3.4](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download)
+* eigen
 #### Requires:
-* SFML
+* SFML (You need to download, install and specify your SFML_DIR. [Instruction how to build project with Cmake](https://www.sfml-dev.org/tutorials/2.5/compile-with-cmake.php))
