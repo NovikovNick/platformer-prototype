@@ -6,7 +6,7 @@
 
 #include "vector_shape.h"
 
-namespace math {
+namespace platformer {
 
 class VectorProductVisualizer : public sf::Drawable {
   float dot_, cross_, angle_rad_, cos_, sin_, lhs_length_, rhs_length_;
@@ -56,5 +56,5 @@ class VectorProductVisualizer : public sf::Drawable {
   float rhsAtan2() const;
 };
 
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_VECTOR_PRODUCT_VISUALIZER_H

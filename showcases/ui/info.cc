@@ -2,7 +2,7 @@
 
 #include <format>
 
-namespace math {
+namespace platformer {
 
 Info::Info(const sf::Font& font, const sf::Color text_color)
     : rows_(std::vector<sf::Text>{}),
@@ -28,4 +28,4 @@ void Info::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   for (const auto& it : rows_) target.draw(it, states);
 }
 
-};  // namespace math
+};  // namespace platformer

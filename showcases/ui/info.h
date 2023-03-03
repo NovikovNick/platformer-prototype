@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-namespace math {
+namespace platformer {
 
 class Info : public sf::Drawable {
   sf::Font font_;
@@ -22,5 +22,5 @@ class Info : public sf::Drawable {
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_INFO_H

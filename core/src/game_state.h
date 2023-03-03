@@ -8,7 +8,7 @@
 #include "game_object.h"
 #include "player.h"
 
-namespace math {
+namespace platformer {
 
 class GameState {
   std::mutex mutex_;
@@ -25,5 +25,5 @@ class GameState {
   bool checkPlatform(const int player_id);
 };
 
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_GAME_STATE_H

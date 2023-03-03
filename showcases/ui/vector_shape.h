@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-namespace math {
+namespace platformer {
 
 class VectorShape : public sf::Drawable {
   Eigen::Vector2f origin_, position_;
@@ -16,5 +16,5 @@ class VectorShape : public sf::Drawable {
   void update(const Eigen::Vector2f origin, const Eigen::Vector2f position);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_VECTOR_SHAPE_H

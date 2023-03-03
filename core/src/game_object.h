@@ -33,7 +33,7 @@ const static FIXED kJumpDelta = FIXED{kJumpHeight} / FIXED{sum(kJump)};
 
 }  // namespace
 
-namespace math {
+namespace platformer {
 
 class GameObject {
   std::vector<VECTOR_2> mesh;
@@ -52,5 +52,5 @@ class GameObject {
   size_t size() const;
 };
 
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_OBJECT_H

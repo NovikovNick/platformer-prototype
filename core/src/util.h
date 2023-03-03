@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-namespace math {
+namespace platformer {
 
 template <typename... Args>
 void debug(const std::string& str, Args... args) {

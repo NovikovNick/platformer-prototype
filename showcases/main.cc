@@ -5,25 +5,16 @@
 #include <fpm/fixed.hpp>
 #include <iostream>
 
-//#include "src/game_loop.cc"
-#include "src/game_loop.h"
-//#include "src/game_object.cc"
-#include "src/game_object.h"
-//#include "src/game_state.cc"
-#include "src/game_state.h"
-//#include "src/info.cc"
-#include "src/info.h"
-//#include "src/player_shape.cc"
-#include "src/player_shape.h"
-//#include "src/scalable_grid.cc"
-#include "src/scalable_grid.h"
-#include "src/util.h"
-//#include "src/vector_product_visualizer.cc"
-#include "src/vector_product_visualizer.h"
-//#include "src/vector_shape.cc"
+#include "game_loop.h"
+#include "game_object.h"
+#include "game_state.h"
+#include "ui/info.h"
+#include "ui/player_shape.h"
+#include "ui/scalable_grid.h"
+#include "ui/vector_product_visualizer.h"
+#include <util.h>
 
 using namespace std::chrono;
-using namespace math;
 
 namespace {
 
@@ -47,42 +38,43 @@ int main() {
 
   sf::Font font;
   if (!font.loadFromFile("resources/default_fnt.otf")) {
-    math::debug("Unable to load default_fnt.otf!\n");
+    platformer::debug("Unable to load default_fnt.otf!\n");
     return 1;
   }
 
-  math::Info info(font, kFstColor);
+  platformer::Info info(font, kFstColor);
   const int fps_index = info.addFormat("FPS: {:.0f}\n");
   const int dx_index = info.addFormat("Delta(sec): {:.6f}\n");
   const int tick_index = info.addFormat("Tick#{:4d}({:2d})- {:4.2f}%\n");
   const int mouse_index = info.addFormat("Mouse[{:4d},{:4d}]\n");
   const int intersection_index = info.addFormat("Intersect[{:4d},{:4d}]\n");
 
-  math::VectorProductVisualizer visualizer(font, kBGColor, kSndColor,
+  platformer::VectorProductVisualizer visualizer(font, kBGColor, kSndColor,
                                            kTrdColor);
   visualizer.update({0, -128}, {64, 0}, {0, 0});
 
-  math::ScalableGrid grid(32);
+  platformer::ScalableGrid grid(32);
 
   auto t0 = steady_clock::now();
   auto t1 = steady_clock::now();
   float elapsed = 0, dx = 0;
   std::bitset<4> input_bitset(0);
 
-  auto gs = std::make_shared<math::GameState>();
+  auto gs = std::make_shared<platformer::GameState>();
   auto tick = std::make_shared<std::atomic<int>>(0);
   auto tick_rate = std::make_shared<std::atomic<int>>(60);
   auto tick_ratio = std::make_shared<std::atomic<float>>(0);
   auto p0_input = std::make_shared<std::atomic<int>>(0);
   auto p1_input = std::make_shared<std::atomic<int>>(0);
-  math::GameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input, p1_input);
+  platformer::GameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
+                                 p1_input);
   std::thread(game_loop).detach();
 
   int prev_tick = tick->load();
   int curr_tick = prev_tick;
 
-  PlayerShape p0{kTrdColor, kSndColor, gs->getPlayer(0)};
-  PlayerShape p1{kTrdColor, kSndColor, gs->getPlayer(1)};
+  platformer::PlayerShape p0{kTrdColor, kSndColor, gs->getPlayer(0)};
+  platformer::PlayerShape p1{kTrdColor, kSndColor, gs->getPlayer(1)};
   float t = tick_ratio->load();  // requires for lerp
   bool fst_player_active = true;
 
@@ -92,8 +84,8 @@ int main() {
     elapsed += dx;
     t0 = t1;
 
-    //info.update(fps_index, 1 / dx);
-    //info.update(dx_index, dx);
+    // info.update(fps_index, 1 / dx);
+    // info.update(dx_index, dx);
 
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -137,7 +129,7 @@ int main() {
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
-            debug("FIXED({}), FIXED({})\n", x - x % 32, y - y % 32);
+            platformer::debug("FIXED({}), FIXED({})\n", x - x % 32, y - y % 32);
             fst_player_active = !fst_player_active;
           }
           break;
@@ -150,7 +142,7 @@ int main() {
         case sf::Event::MouseMoved: {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
-          //info.update(mouse_index, x, y);
+          // info.update(mouse_index, x, y);
           gs->getPlatforms()[1].position = {FIXED(x - x % 32),
                                             FIXED(y - y % 32)};
           break;
@@ -179,7 +171,7 @@ int main() {
     }
     p0.update(t);
     p1.update(t);
-    //info.update(tick_index, curr_tick, tick_rate->load(), t);
+    // info.update(tick_index, curr_tick, tick_rate->load(), t);
 
     std::vector<sf::VertexArray> platform_shapes;
     for (const auto& platform : gs->getPlatforms()) {

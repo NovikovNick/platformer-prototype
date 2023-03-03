@@ -4,7 +4,7 @@
 
 #include "game_state.h"
 
-namespace math {
+namespace platformer {
 
 class GameLoop {
   bool running_;
@@ -24,5 +24,5 @@ class GameLoop {
   void operator()();
 };
 
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_GAME_LOOP_H

@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-namespace math {
+namespace platformer {
 
 using namespace std::chrono;
 using clock = high_resolution_clock;
@@ -58,4 +58,4 @@ void GameLoop::operator()() {
   }
 };
 
-};  // namespace math
+};  // namespace platformer

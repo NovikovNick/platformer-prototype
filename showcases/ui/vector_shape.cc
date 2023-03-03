@@ -1,6 +1,6 @@
 #include "vector_shape.h"
 
-namespace math {
+namespace platformer {
 
 VectorShape::VectorShape(sf::Color color)
     : origin_({0, 0}),
@@ -39,4 +39,4 @@ void VectorShape::draw(sf::RenderTarget& target,
   target.draw(line_array_, states);
   target.draw(arrow_array_, states);
 };
-};  // namespace math
+};  // namespace platformer

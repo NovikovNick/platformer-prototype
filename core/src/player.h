@@ -2,7 +2,7 @@
 #define GEOM_2D_MATH_PLAYER_H
 #include "game_object.h"
 
-namespace math {
+namespace platformer {
 
 enum class PlayerState { IDLE, RUN, JUMP_UP, JUMP_DOWN };
 
@@ -17,5 +17,5 @@ class Player {
   void updateFrame(const PlayerState state);
 };
 
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_PLAYER_H

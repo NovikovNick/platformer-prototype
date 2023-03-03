@@ -1,15 +1,16 @@
 #include "player_shape.h"
 
-namespace math {
+namespace platformer {
 PlayerShape::PlayerShape(const sf::Color main_color,
-                         const sf::Color velocity_color, const GameObject curr)
+                         const sf::Color velocity_color,
+                         const platformer::GameObject curr)
     : player_shape_(sf::VertexArray(sf::Quads, 4)),
       curr_(curr),
       prev_(curr),
       velocity_vector_(VectorShape{velocity_color}) {
   for (int i = 0; i < 4; ++i) player_shape_[i].color = main_color;
 }
-void PlayerShape::update(const GameObject curr) {
+void PlayerShape::update(const platformer::GameObject curr) {
   prev_ = curr_;
   curr_ = curr;
 };
@@ -55,4 +56,4 @@ void PlayerShape::draw(sf::RenderTarget& target,
   target.draw(player_shape_, states);
   target.draw(velocity_vector_, states);
 };
-};  // namespace math
+};  // namespace platformer

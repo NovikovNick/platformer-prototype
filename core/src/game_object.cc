@@ -5,7 +5,7 @@
 #include <fpm/math.hpp>   // For fpm::cos
 
 #include "util.h"
-namespace math {
+namespace platformer {
 
 using namespace Eigen;
 using namespace fpm;
@@ -46,4 +46,4 @@ std::pair<FIXED, FIXED> GameObject::getProjectionMinMax(const int axis) const {
 
 size_t GameObject::size() const { return mesh.size(); }
 
-}  // namespace math
+}  // namespace platformer

@@ -3,7 +3,7 @@
 const static sf::Color kGreyColor(50, 50, 50);
 const static sf::Color kWhiteColor(100, 100, 100);
 
-namespace math {
+namespace platformer {
 
 ScalableGrid::ScalableGrid(const int unit)
     : grid_(sf::VertexArray(sf::Lines, 116)), unit_(static_cast<float>(unit >> 1)) {

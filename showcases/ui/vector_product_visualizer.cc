@@ -81,7 +81,7 @@ inline bool isHover(const Eigen::Vector2f& mouse,
 
 }  // namespace
 
-namespace math {
+namespace platformer {
 
 VectorProductVisualizer::VectorProductVisualizer(const sf::Font& font,
                                                  const sf::Color bg_color,
@@ -124,7 +124,7 @@ void VectorProductVisualizer::update(const Eigen::Vector2f mouse_position,
   update(mouse_position);
 
   if (!lft_mouse_pressed)
-    debug(
+    platformer::debug(
         "update({{{:4.0f},{:4.0f}}}, {{{:4.0f},{:4.0f}}}, "
         "{{{:4.0f},{:4.0f}}});\n",
         lhs_.x(), lhs_.y(), rhs_.x(), rhs_.y(), origin_.x(), origin_.y());
@@ -261,4 +261,4 @@ inline float VectorProductVisualizer::rhsAtan2() const {
 inline float VectorProductVisualizer::lhsLength() const { return lhs_length_; }
 inline float VectorProductVisualizer::rhsLength() const { return rhs_length_; }
 
-};  // namespace math
+};  // namespace platformer

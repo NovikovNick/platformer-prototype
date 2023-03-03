@@ -1,6 +1,6 @@
 #include "player.h"
 
-namespace math {
+namespace platformer {
 
 Player::Player()
     : state_(PlayerState::IDLE),
@@ -15,4 +15,4 @@ void Player::updateFrame(const PlayerState state) {
   frame_ = state_ != state ? 0 : frame_ + 1;
   state_ = state;
 }
-}  // namespace math
+}  // namespace platformer

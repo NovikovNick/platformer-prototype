@@ -16,8 +16,8 @@ inline VECTOR_2 normal(const VECTOR_2& val) {
   return val / length(val.x(), val.y());
 }
 
-std::pair<FIXED, FIXED> isIntersect(const math::GameObject& lhs,
-                                    const math::GameObject& rhs) {
+std::pair<FIXED, FIXED> isIntersect(const platformer::GameObject& lhs,
+                                    const platformer::GameObject& rhs) {
   auto [lhs_min_x, lhs_max_x] = lhs.getProjectionMinMax(0);
   auto [rhs_min_x, rhs_max_x] = rhs.getProjectionMinMax(0);
   auto [lhs_min_y, lhs_max_y] = lhs.getProjectionMinMax(1);
@@ -38,7 +38,7 @@ std::pair<FIXED, FIXED> isIntersect(const math::GameObject& lhs,
 }
 }  // namespace
 
-namespace math {
+namespace platformer {
 
 GameState::GameState()
     : platforms_(std::vector<GameObject>{}), players_(std::vector<Player>{}) {
@@ -168,4 +168,4 @@ bool GameState::checkPlatform(const int player_id) {
   }
   return false;
 }
-};  // namespace math
+};  // namespace platformer

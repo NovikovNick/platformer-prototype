@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-namespace math {
+namespace platformer {
 class ScalableGrid : public sf::Drawable {
   sf::VertexArray grid_;
   float unit_;
@@ -16,5 +16,5 @@ class ScalableGrid : public sf::Drawable {
  private:
   static void init(sf::VertexArray& grid_, const float unit);
 };
-};      // namespace math
+};      // namespace platformer
 #endif  // GEOM_2D_MATH_SCALABLE_GRID_H
