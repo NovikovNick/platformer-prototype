@@ -7,13 +7,15 @@ set(SFML_DIR  "C:/home/app/SFML/lib/cmake/SFML")
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2.5 COMPONENTS graphics window main network audio REQUIRED)
 
-add_executable (showcase "main.cc" ${UI_SRC})
-target_link_libraries(showcase 
+add_executable (main_showcase "main_showcase.cc" ${UI_SRC})
+target_compile_features(main_showcase PUBLIC cxx_std_20)
+target_link_libraries(main_showcase 
     PRIVATE
+        Platformer::core
+        Platformer::serialization
         sfml-graphics
         sfml-window
         sfml-main
         sfml-network
         sfml-audio
-        Platformer::core
 )

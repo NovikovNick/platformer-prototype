@@ -1,6 +1,9 @@
 # Platformer prototype
-#### Includes submodules:
-* fpm
-* eigen
-#### Requires:
-* SFML (You need to download, install and specify your SFML_DIR. [Instruction how to build project with Cmake](https://www.sfml-dev.org/tutorials/2.5/compile-with-cmake.php))
+#### How to build:
+```.env
+git submodule init
+git submodule update
+./external/vcpkg/bootstrap-vcpkg.bat -disableMetrics
+./external/vcpkg/vcpkg.exe install protobuf:x64-windows-static
+./external/vcpkg/vcpkg.exe install sfml:x64-windows-static
+```

@@ -1,8 +1,6 @@
-﻿cmake_minimum_required (VERSION 3.13)
-
+﻿cmake_minimum_required (VERSION 3.24)
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake")
 project ("platformer")
-
-set(CMAKE_CXX_STANDARD 20) # todo: use targets instead 
 
 # Eigen 3.4
 include_directories("external/eigen")
@@ -12,4 +10,4 @@ include_directories("external/fpm/include")
 
 add_subdirectory ("core")
 add_subdirectory ("showcases")
-add_subdirectory ("api")
+add_subdirectory ("serialization")

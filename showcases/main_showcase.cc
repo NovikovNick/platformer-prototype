@@ -1,4 +1,6 @@
-﻿#include <Eigen/Dense>
+﻿#include <util.h>
+
+#include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 #include <bitset>
 #include <format>
@@ -12,7 +14,7 @@
 #include "ui/player_shape.h"
 #include "ui/scalable_grid.h"
 #include "ui/vector_product_visualizer.h"
-#include <util.h>
+#include <message.pb.h>
 
 using namespace std::chrono;
 
@@ -26,6 +28,9 @@ const static sf::Color kTrdColor(255, 255, 255);
 }  // namespace
 
 int main() {
+  message::Message m;
+  std::cout << "Protobuf is installed... " << m.ByteSize() << std::endl;
+
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
   auto mode = sf::VideoMode(896, 896);
@@ -50,7 +55,7 @@ int main() {
   const int intersection_index = info.addFormat("Intersect[{:4d},{:4d}]\n");
 
   platformer::VectorProductVisualizer visualizer(font, kBGColor, kSndColor,
-                                           kTrdColor);
+                                                 kTrdColor);
   visualizer.update({0, -128}, {64, 0}, {0, 0});
 
   platformer::ScalableGrid grid(32);
