@@ -167,7 +167,7 @@ void VectorProductVisualizer::update(Eigen::Vector2f lhs, Eigen::Vector2f rhs,
   lhs.normalize();
   rhs.normalize();
   dot_ = lhs.dot(rhs);
-  cross_ = lhs.cross(rhs);
+  cross_ = lhs.x() * rhs.y() - rhs.x() * lhs.y();  // lhs.cross(rhs);
   angle_rad_ = std::acos(dot_);
   cos_ = dot_;
   sin_ = std::sin(angle_rad_);

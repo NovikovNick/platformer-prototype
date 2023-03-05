@@ -5,5 +5,6 @@ git submodule init
 git submodule update
 ./external/vcpkg/bootstrap-vcpkg.bat -disableMetrics
 ./external/vcpkg/vcpkg.exe install protobuf:x64-windows-static
-./external/vcpkg/vcpkg.exe install sfml:x64-windows-static
+./external/vcpkg/vcpkg.exe install eigen3:x64-windows
+./external/vcpkg/vcpkg.exe install sfml:x64-windows
 ```

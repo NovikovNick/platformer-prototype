@@ -2,9 +2,6 @@
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake")
 project ("platformer")
 
-# Eigen 3.4
-include_directories("external/eigen")
-
 # fpm
 include_directories("external/fpm/include")
 
