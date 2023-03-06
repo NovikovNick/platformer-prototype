@@ -156,3 +156,6 @@ godot-cpp/
 
 # cmake
 out
+
+# vcpkg
+vcpkg_installed

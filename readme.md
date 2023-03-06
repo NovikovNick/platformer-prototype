@@ -4,7 +4,6 @@
 git submodule init
 git submodule update
 ./external/vcpkg/bootstrap-vcpkg.bat -disableMetrics
-./external/vcpkg/vcpkg.exe install protobuf:x64-windows-static
-./external/vcpkg/vcpkg.exe install eigen3:x64-windows
-./external/vcpkg/vcpkg.exe install sfml:x64-windows
 ```
+
+Then open it in Visual Studio as local folder. IDE will detect CMake and run `vcpkg inslall` that will download the rest of the dependencies.

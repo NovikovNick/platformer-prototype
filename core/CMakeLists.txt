@@ -13,7 +13,7 @@ target_sources(core
 		${CORE_SRC})
 target_link_libraries(core 
 	PUBLIC 
-		Platformer::fpm
+		fpm::fpm
 		Eigen3::Eigen)
 target_include_directories(core 
 	PUBLIC 

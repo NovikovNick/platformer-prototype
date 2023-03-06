@@ -1,5 +1,5 @@
 ﻿add_library(fpm INTERFACE)
-add_library (Platformer::fpm ALIAS fpm)
+add_library (fpm::fpm ALIAS fpm)
 target_include_directories(fpm INTERFACE fpm/include)
 install(FILES
   fpm/include/fpm/fixed.hpp
