@@ -2,8 +2,6 @@
 
 #include <bitset>
 
-// #include "player.cc"
-
 namespace {
 
 inline FIXED length(const FIXED& x, const FIXED& y) {
@@ -151,6 +149,10 @@ GameObject GameState::getPlayer(const int player_id) {
 }
 
 std::vector<GameObject>& GameState::getPlatforms() { return platforms_; }
+
+std::unique_lock<std::mutex> GameState::lock() {
+  return std::unique_lock{mutex_};
+}
 
 bool GameState::checkPlatform(const int player_id) {
   auto& player = players_[player_id].obj;

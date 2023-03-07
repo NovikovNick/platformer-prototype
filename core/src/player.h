@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_PLAYER_H
-#define GEOM_2D_MATH_PLAYER_H
+#ifndef PLATFORMER_PLAYER_H
+#define PLATFORMER_PLAYER_H
 #include "game_object.h"
 
 namespace platformer {
@@ -18,4 +18,4 @@ class Player {
 };
 
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_PLAYER_H
+#endif  // PLATFORMER_PLAYER_H

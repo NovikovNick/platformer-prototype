@@ -1,4 +1,5 @@
-﻿#include <util.h>
+﻿#include <serializer.h>
+#include <util.h>
 
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
@@ -70,6 +71,18 @@ int main() {
   platformer::GameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
                                  p1_input);
   std::thread(game_loop).detach();
+  
+  // Network thread
+  std::thread([gs = gs]() {
+    while (true) {
+      std::this_thread::sleep_until(steady_clock::now() + 1ms);
+      //auto lock = gs->lock();
+      unsigned char* buf = nullptr;
+      int length;
+      platformer::Serializer::serialize(gs, &buf, &length);
+      platformer::Serializer::deserialize(gs, buf, length);
+    }
+  }).detach();
 
   int prev_tick = tick->load();
   int curr_tick = prev_tick;
@@ -144,6 +157,7 @@ int main() {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
           // info.update(mouse_index, x, y);
+          auto lock = gs->lock();
           gs->getPlatforms()[1].position = {FIXED(x - x % 32),
                                             FIXED(y - y % 32)};
           break;
@@ -167,23 +181,28 @@ int main() {
     t = tick_ratio->load();
     if (prev_tick != curr_tick) {
       prev_tick = curr_tick;
-      p0.update(gs->getPlayer(0));
-      p1.update(gs->getPlayer(1));
+      auto lock = gs->lock();
+      p0.update(gs->players_[0].obj);
+      p1.update(gs->players_[1].obj);
     }
     p0.update(t);
     p1.update(t);
     // info.update(tick_index, curr_tick, tick_rate->load(), t);
 
     std::vector<sf::VertexArray> platform_shapes;
-    for (const auto& platform : gs->getPlatforms()) {
-      sf::VertexArray platform_shape(sf::Quads, 4);
-      for (int i = 0; i < platform.size(); ++i) {
-        platform_shape[i].position.x = static_cast<float>(platform[i].x());
-        platform_shape[i].position.y = static_cast<float>(platform[i].y());
-        platform_shape[i].color = kFstColor;
+    {
+      auto lock = gs->lock();
+      for (const auto& platform : gs->getPlatforms()) {
+        sf::VertexArray platform_shape(sf::Quads, 4);
+        for (int i = 0; i < platform.size(); ++i) {
+          platform_shape[i].position.x = static_cast<float>(platform[i].x());
+          platform_shape[i].position.y = static_cast<float>(platform[i].y());
+          platform_shape[i].color = kFstColor;
+        }
+        platform_shapes.push_back(platform_shape);
       }
-      platform_shapes.push_back(platform_shape);
     }
+    
 
     window.clear(kBGColor);
     window.draw(grid);

@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_SCALABLE_GRID_H
-#define GEOM_2D_MATH_SCALABLE_GRID_H
+#ifndef PLATFORMER_UI_SCALABLE_GRID_H
+#define PLATFORMER_UI_SCALABLE_GRID_H
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -17,4 +17,4 @@ class ScalableGrid : public sf::Drawable {
   static void init(sf::VertexArray& grid_, const float unit);
 };
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_SCALABLE_GRID_H
+#endif  // PLATFORMER_UI_SCALABLE_GRID_H

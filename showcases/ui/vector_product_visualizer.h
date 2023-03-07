@@ -1,5 +1,5 @@
-﻿#ifndef GEOM_2D_MATH_VECTOR_PRODUCT_VISUALIZER_H
-#define GEOM_2D_MATH_VECTOR_PRODUCT_VISUALIZER_H
+﻿#ifndef PLATFORMER_UI_VECTOR_PRODUCT_VISUALIZER_H
+#define PLATFORMER_UI_VECTOR_PRODUCT_VISUALIZER_H
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 #include <cmath>
@@ -57,4 +57,4 @@ class VectorProductVisualizer : public sf::Drawable {
 };
 
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_VECTOR_PRODUCT_VISUALIZER_H
+#endif  // PLATFORMER_UI_VECTOR_PRODUCT_VISUALIZER_H

@@ -1,5 +1,5 @@
-﻿#ifndef GEOM_2D_MATH_INFO_H
-#define GEOM_2D_MATH_INFO_H
+﻿#ifndef PLATFORMER_UI_INFO_H
+#define PLATFORMER_UI_INFO_H
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
@@ -23,4 +23,4 @@ class Info : public sf::Drawable {
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_INFO_H
+#endif  // PLATFORMER_UI_INFO_H

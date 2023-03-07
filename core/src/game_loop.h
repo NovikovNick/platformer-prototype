@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_GAME_LOOP_H
-#define GEOM_2D_MATH_GAME_LOOP_H
+#ifndef PLATFORMER_GAME_LOOP_H
+#define PLATFORMER_GAME_LOOP_H
 #include <iostream>
 
 #include "game_state.h"
@@ -25,4 +25,4 @@ class GameLoop {
 };
 
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_GAME_LOOP_H
+#endif  // PLATFORMER_GAME_LOOP_H

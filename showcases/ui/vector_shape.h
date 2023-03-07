@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_VECTOR_SHAPE_H
-#define GEOM_2D_MATH_VECTOR_SHAPE_H
+#ifndef PLATFORMER_UI_VECTOR_SHAPE_H
+#define PLATFORMER_UI_VECTOR_SHAPE_H
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -17,4 +17,4 @@ class VectorShape : public sf::Drawable {
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_VECTOR_SHAPE_H
+#endif  // PLATFORMER_UI_VECTOR_SHAPE_H

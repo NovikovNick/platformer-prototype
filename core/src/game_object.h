@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_OBJECT_H
-#define GEOM_2D_MATH_OBJECT_H
+#ifndef PLATFORMER_GAME_OBJECT_H
+#define PLATFORMER_GAME_OBJECT_H
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
 #include <vector>
@@ -36,10 +36,9 @@ const static FIXED kJumpDelta = FIXED{kJumpHeight} / FIXED{sum(kJump)};
 namespace platformer {
 
 class GameObject {
+ public:
   std::vector<VECTOR_2> mesh;
   int width_, height_;
-
- public:
   VECTOR_2 position, velocity;
 
   GameObject(const int width, const int height,
@@ -53,4 +52,4 @@ class GameObject {
 };
 
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_OBJECT_H
+#endif  // PLATFORMER_GAME_OBJECT_H

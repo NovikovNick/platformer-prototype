@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_GAME_STATE_H
-#define GEOM_2D_MATH_GAME_STATE_H
+#ifndef PLATFORMER_GAME_STATE_H
+#define PLATFORMER_GAME_STATE_H
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
 #include <future>
@@ -12,18 +12,21 @@ namespace platformer {
 
 class GameState {
   std::mutex mutex_;
+
+ public:
   std::vector<Player> players_;
   std::vector<GameObject> platforms_;
 
- public:
   GameState();
   void update(const int p0_input, const int p1_input, const int frames);
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
+  
+  std::unique_lock<std::mutex> lock();
 
  private:
   bool checkPlatform(const int player_id);
 };
 
 };      // namespace platformer
-#endif  // GEOM_2D_MATH_GAME_STATE_H
+#endif  // PLATFORMER_GAME_STATE_H
