@@ -8,13 +8,14 @@
 #include <fpm/fixed.hpp>
 #include <iostream>
 
-#include "game_loop.h"
 #include "game_object.h"
 #include "game_state.h"
 #include "ui/info.h"
 #include "ui/player_shape.h"
 #include "ui/scalable_grid.h"
 #include "ui/vector_product_visualizer.h"
+
+#include "app/net_game_loop.h"
 
 using namespace std::chrono;
 
@@ -68,15 +69,14 @@ int main() {
   auto tick_ratio = std::make_shared<std::atomic<float>>(0);
   auto p0_input = std::make_shared<std::atomic<int>>(0);
   auto p1_input = std::make_shared<std::atomic<int>>(0);
-  platformer::GameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
+  platformer::NetGameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
                                  p1_input);
   std::thread(game_loop).detach();
-  
+
   // Network thread
   std::thread([gs = gs]() {
     while (true) {
       std::this_thread::sleep_until(steady_clock::now() + 1ms);
-      //auto lock = gs->lock();
       unsigned char* buf = nullptr;
       int length;
       platformer::Serializer::serialize(gs, &buf, &length);
@@ -156,16 +156,11 @@ int main() {
         case sf::Event::MouseMoved: {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
-          // info.update(mouse_index, x, y);
-          auto lock = gs->lock();
-          gs->getPlatforms()[1].position = {FIXED(x - x % 32),
-                                            FIXED(y - y % 32)};
           break;
         }
         case sf::Event::MouseWheelMoved: {
           auto [delta, x, y] = event.mouseWheel;
           tick_rate->fetch_add(delta);
-          // grid.update(delta);
           break;
         }
       }
@@ -202,7 +197,6 @@ int main() {
         platform_shapes.push_back(platform_shape);
       }
     }
-    
 
     window.clear(kBGColor);
     window.draw(grid);

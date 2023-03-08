@@ -105,7 +105,7 @@ bool Serializer::serialize(std::shared_ptr<GameState> gs,
 bool Serializer::deserialize(std::shared_ptr<GameState> gs,
                              unsigned char* buffer, int len) {
   ser::GameState serialized;
-  serialized.ParseFromArray(buffer, len);
+  auto res = serialized.ParseFromArray(buffer, len);
   
   auto lock = gs->lock();
   gs->players_.clear();
@@ -117,7 +117,7 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
   for (const auto& platform : serialized.platforms())
     gs->platforms_.push_back(convert(platform));
 
-  return false;
+  return res;
 }
 
 };  // namespace platformer

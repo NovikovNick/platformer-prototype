@@ -4,3 +4,6 @@
 [submodule "external/vcpkg"]
 	path = external/vcpkg
 	url = https://github.com/Microsoft/vcpkg.git
+[submodule "external/ggpo"]
+	path = external/ggpo
+	url = https://github.com/NovikovNick/ggpo.git
