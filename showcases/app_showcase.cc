@@ -8,14 +8,13 @@
 #include <fpm/fixed.hpp>
 #include <iostream>
 
+#include "app/net_game_loop.h"
 #include "game_object.h"
 #include "game_state.h"
 #include "ui/info.h"
 #include "ui/player_shape.h"
 #include "ui/scalable_grid.h"
 #include "ui/vector_product_visualizer.h"
-
-#include "app/net_game_loop.h"
 
 using namespace std::chrono;
 
@@ -28,7 +27,10 @@ const static sf::Color kTrdColor(255, 255, 255);
 
 }  // namespace
 
-int main() {
+int main(int argc, char* argv[]) {
+  platformer::debug("There are {} arguments\n", argc);
+  for (int i = 0; i < argc; ++i) platformer::debug("arg: {}\n", argv[i]);
+
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
   auto mode = sf::VideoMode(896, 896);
@@ -70,7 +72,7 @@ int main() {
   auto p0_input = std::make_shared<std::atomic<int>>(0);
   auto p1_input = std::make_shared<std::atomic<int>>(0);
   platformer::NetGameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
-                                 p1_input);
+                                    p1_input);
   std::thread(game_loop).detach();
 
   // Network thread

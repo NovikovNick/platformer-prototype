@@ -3,12 +3,16 @@
 #include <ggponet.h>
 #include <serializer.h>
 #include <util.h>
+// #include <windows.h>
 
 #include <chrono>
 #include <thread>
 
+#include "nongamestate.h"
+
 namespace {
 std::shared_ptr<platformer::GameState> game_state;
+NonGameState ngs;
 GGPOSession *ggpo;
 
 int fletcher32_checksum(short *data, size_t len) {
@@ -50,48 +54,48 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
   int player_id;
   switch (info->code) {
     case GGPO_EVENTCODE_CONNECTED_TO_PEER:
-      // ngs.SetConnectState(info->u.connected.player, Synchronizing);
       player_id = info->u.connected.player;
+      ngs.SetConnectState(player_id, Synchronizing);
       platformer::debug("NGS: {} synchronizing\n", player_id);
       break;
     case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-      // ngs.UpdateConnectProgress(info->u.synchronizing.player, progress);
       progress =
           100 * info->u.synchronizing.count / info->u.synchronizing.total;
       player_id = info->u.connected.player;
+      ngs.UpdateConnectProgress(player_id, progress);
       platformer::debug("NGS: {} sync: {}\n", player_id, progress);
       break;
     case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-      // ngs.UpdateConnectProgress(info->u.synchronized.player, 100);
       player_id = info->u.connected.player;
+      ngs.UpdateConnectProgress(player_id, 100);
       platformer::debug("NGS: {} synchronized\n", player_id);
       break;
     case GGPO_EVENTCODE_RUNNING:
-      // ngs.SetConnectState(Running);
-      // renderer->SetStatusText("");
+      ngs.SetConnectState(Running);
       platformer::debug("NGS: {} running\n");
       break;
     case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
-      /*ngs.SetDisconnectTimeout(
-          info->u.connection_interrupted.player, timeGetTime(),
-          info->u.connection_interrupted.disconnect_timeout);*/
       player_id = info->u.connection_interrupted.player;
-      platformer::debug("NGS: {} interrupted\n", player_id);
+      /*ngs.SetDisconnectTimeout(
+          player_id, timeGetTime(),
+          info->u.connection_interrupted.disconnect_timeout);*/
+      platformer::debug("NGS: {} interrupted. Not implemented\n", player_id);
       break;
     case GGPO_EVENTCODE_CONNECTION_RESUMED:
-      // ngs.SetConnectState(info->u.connection_resumed.player, Running);
       player_id = info->u.connection_interrupted.player;
+      ngs.SetConnectState(player_id, Running);
       platformer::debug("NGS: {} resumed\n", player_id);
       break;
     case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
-      // ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       player_id = info->u.disconnected.player;
+      ngs.SetConnectState(player_id, Disconnected);
       platformer::debug("NGS: {} disconnected\n", player_id);
       break;
     case GGPO_EVENTCODE_TIMESYNC:
       /*Sleep(1000 * info->u.timesync.frames_ahead / 60);
         auto player_id = info->u.disconnected.player;*/
-      platformer::debug("NGS: {} tymesync\n", info->u.timesync.frames_ahead);
+      platformer::debug("NGS: {} tymesync. Not implemented\n",
+                        info->u.timesync.frames_ahead);
       break;
   }
   return true;
@@ -227,8 +231,25 @@ NetGameLoop::NetGameLoop(std::shared_ptr<GameState> gs,
   ggpo_set_disconnect_timeout(ggpo, 3000);
   ggpo_set_disconnect_notify_start(ggpo, 1000);
   debug("GGPO session started\n");
-
+  /*
+  WSADATA wd = {0};
+  WSAStartup(MAKEWORD(2, 2), &wd);
+  */
   GGPOPlayer players[num_players];
+  players[0].size = sizeof(players[0]);
+  players[0].player_num = 1;
+  players[0].type = GGPO_PLAYERTYPE_LOCAL;
+
+  GGPOPlayerHandle handle;
+  res = ggpo_add_player(ggpo, players + 0, &handle);
+  ngs.players[0].handle = handle;
+  ngs.players[0].type = players[0].type;
+  ngs.players[0].connect_progress = 100;
+  ngs.local_player_handle = handle;
+  ngs.SetConnectState(handle, Connecting);
+  ggpo_set_frame_delay(ggpo, handle, 2);
+
+  // ngs.players[i].connect_progress = 0;
 };
 
 void NetGameLoop::operator()() {
@@ -240,7 +261,11 @@ void NetGameLoop::operator()() {
   float micro = 0;
   int frame_per_tick, tick_rate;
 
+  GGPOErrorCode result = GGPO_OK;
+
   while (running_) {
+    ggpo_idle(ggpo, 0);
+
     t1 = clock::now();
     auto next_frame = duration_cast<frame>(t1 - t0).count();
     micro = duration_cast<microseconds>(t1 - t2).count();
@@ -255,8 +280,11 @@ void NetGameLoop::operator()() {
       frame_ = next_frame;
 
       if (next_frame % frame_per_tick == 0) {
+        auto input = p0_input_->load();
+        // result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input,
+        // sizeof(input));
         tick_->fetch_add(1);
-        game_state->update(p0_input_->load(), p1_input_->load(), 1);
+        game_state->update(input, p1_input_->load(), 1);
         t2 = t1;
       }
     }

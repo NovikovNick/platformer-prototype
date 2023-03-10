@@ -42,5 +42,6 @@ target_link_libraries(app_showcase
 )
 add_custom_command(TARGET app_showcase POST_BUILD
 	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
-    ${CMAKE_SOURCE_DIR}/external/ggpo/build/bin/x64/Debug/GGPO.dll ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/external/ggpo/build/bin/x64/Debug/GGPO.dll 
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
