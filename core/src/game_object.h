@@ -4,9 +4,9 @@
 #include <fpm/fixed.hpp>
 #include <vector>
 
-using FIXED = fpm::fixed_16_16;
-using VECTOR_2 = Eigen::Vector2<FIXED>;
-using VECTOR_3 = Eigen::Vector3<FIXED>;
+using FIX = fpm::fixed_16_16;
+using VECTOR_2 = Eigen::Vector2<FIX>;
+using VECTOR_3 = Eigen::Vector3<FIX>;
 namespace {
 constexpr int sum(const int n) {
   int res = 0;
@@ -14,8 +14,8 @@ constexpr int sum(const int n) {
   return res;
 }
 
-const static FIXED kZero{0};
-const static FIXED kOne{1};
+const static FIX kZero{0};
+const static FIX kOne{1};
 
 const static int kInputLeft = 0;
 const static int kInputRight = 1;
@@ -29,7 +29,7 @@ const static int kAccelerationX = 1;
 const static float kAccelerationGravity = 1.5f;
 const static int kMaxVelocityX = 12;
 const static int kMaxVelocityFall = 20;
-const static FIXED kJumpDelta = FIXED{kJumpHeight} / FIXED{sum(kJump)};
+const static FIX kJumpDelta = FIX{kJumpHeight} / FIX{sum(kJump)};
 
 }  // namespace
 
@@ -46,7 +46,7 @@ class GameObject {
 
   VECTOR_3 operator[](const size_t index) const;
 
-  std::pair<FIXED, FIXED> getProjectionMinMax(const int axis) const;
+  std::pair<FIX, FIX> getProjectionMinMax(const int axis) const;
 
   size_t size() const;
 };

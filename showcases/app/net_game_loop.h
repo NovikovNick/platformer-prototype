@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "input_args.h"
+
 namespace platformer {
 
 class NetGameLoop {
@@ -13,13 +15,13 @@ class NetGameLoop {
   std::shared_ptr<std::atomic<float>> tick_ratio_;
 
  public:
-  NetGameLoop(std::shared_ptr<GameState> gs,
+  NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
               std::shared_ptr<std::atomic<int>> tick,
               std::shared_ptr<std::atomic<int>> tick_rate,
               std::shared_ptr<std::atomic<float>> tick_ratio,
               std::shared_ptr<std::atomic<int>> p0_input,
               std::shared_ptr<std::atomic<int>> p1_input);
-
+  ~NetGameLoop();
   void operator()();
 };
 

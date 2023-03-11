@@ -34,12 +34,19 @@ target_link_libraries(app_showcase
     PRIVATE
         Platformer::core
         Platformer::serialization
-        ggpo::ggpo
-        ${CMAKE_SOURCE_DIR}/external/ggpo/build/lib/x64/Debug/GGPO.lib
         sfml-graphics
         sfml-window
         sfml-main
 )
+target_link_libraries(app_showcase 
+    LINK_PUBLIC 
+        ggpo::ggpo
+        winmm.lib
+        ws2_32.lib
+        ${CMAKE_SOURCE_DIR}/external/ggpo/build/lib/x64/Debug/GGPO.lib
+)
+
+
 add_custom_command(TARGET app_showcase POST_BUILD
 	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
     ${CMAKE_SOURCE_DIR}/external/ggpo/build/bin/x64/Debug/GGPO.dll 

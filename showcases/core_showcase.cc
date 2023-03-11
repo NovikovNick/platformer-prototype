@@ -130,7 +130,7 @@ int main() {
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
-            platformer::debug("FIXED({}), FIXED({})\n", x - x % 32, y - y % 32);
+            platformer::debug("FIX({}), FIX({})\n", x - x % 32, y - y % 32);
             fst_player_active = !fst_player_active;
           }
           break;
@@ -144,8 +144,8 @@ int main() {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
           // info.update(mouse_index, x, y);
-          gs->getPlatforms()[1].position = {FIXED(x - x % 32),
-                                            FIXED(y - y % 32)};
+          gs->getPlatforms()[1].position = {FIX(x - x % 32),
+                                            FIX(y - y % 32)};
           break;
         }
         case sf::Event::MouseWheelMoved: {

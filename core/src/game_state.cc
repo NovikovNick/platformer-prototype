@@ -4,8 +4,8 @@
 
 namespace {
 
-inline FIXED length(const FIXED& x, const FIXED& y) {
-  return FIXED{std::sqrt(std::pow(static_cast<int>(x), 2) +
+inline FIX length(const FIX& x, const FIX& y) {
+  return FIX{std::sqrt(std::pow(static_cast<int>(x), 2) +
                          std::pow(static_cast<int>(y), 2))};
 }
 
@@ -14,7 +14,7 @@ inline VECTOR_2 normal(const VECTOR_2& val) {
   return val / length(val.x(), val.y());
 }
 
-std::pair<FIXED, FIXED> isIntersect(const platformer::GameObject& lhs,
+std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
                                     const platformer::GameObject& rhs) {
   auto [lhs_min_x, lhs_max_x] = lhs.getProjectionMinMax(0);
   auto [rhs_min_x, rhs_max_x] = rhs.getProjectionMinMax(0);
@@ -27,8 +27,8 @@ std::pair<FIXED, FIXED> isIntersect(const platformer::GameObject& lhs,
   if (rhs_max_y - lhs_min_y < kZero) return {kZero, kZero};
   if (lhs_max_y - rhs_min_y < kZero) return {kZero, kZero};
 
-  FIXED diff_x = std::min(rhs_max_x - lhs_min_x, lhs_max_x - rhs_min_x);
-  FIXED diff_y = std::min(rhs_max_y - lhs_min_y, lhs_max_y - rhs_min_y);
+  FIX diff_x = std::min(rhs_max_x - lhs_min_x, lhs_max_x - rhs_min_x);
+  FIX diff_y = std::min(rhs_max_y - lhs_min_y, lhs_max_y - rhs_min_y);
 
   if (rhs_max_x > lhs_max_x) diff_x *= -1;
   if (rhs_max_y > lhs_max_y) diff_y *= -1;
@@ -40,16 +40,16 @@ namespace platformer {
 
 GameState::GameState()
     : platforms_(std::vector<GameObject>{}), players_(std::vector<Player>{}) {
-  players_.emplace_back().obj.position = {FIXED(192), FIXED(768)};
-  players_.emplace_back().obj.position = {FIXED(96), FIXED(768)};
+  players_.emplace_back().obj.position = {FIX(192), FIX(768)};
+  players_.emplace_back().obj.position = {FIX(96), FIX(768)};
 
   std::vector<VECTOR_2> mesh{
       {kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}};
-  platforms_.emplace_back(864, 32, mesh).position = {FIXED(0), FIXED(864)};
-  platforms_.emplace_back(192, 32, mesh).position = {FIXED(256), FIXED(608)};
-  platforms_.emplace_back(224, 32, mesh).position = {FIXED(672), FIXED(736)};
-  platforms_.emplace_back(32, 256, mesh).position = {FIXED(0), FIXED(640)};
-  platforms_.emplace_back(32, 256, mesh).position = {FIXED(864), FIXED(640)};
+  platforms_.emplace_back(864, 32, mesh).position = {FIX(0), FIX(864)};
+  platforms_.emplace_back(192, 32, mesh).position = {FIX(256), FIX(608)};
+  platforms_.emplace_back(224, 32, mesh).position = {FIX(672), FIX(736)};
+  platforms_.emplace_back(32, 256, mesh).position = {FIX(0), FIX(640)};
+  platforms_.emplace_back(32, 256, mesh).position = {FIX(864), FIX(640)};
 }
 
 void GameState::update(const int p0_input, const int p1_input,
@@ -63,12 +63,12 @@ void GameState::update(const int p0_input, const int p1_input,
     auto& pos_y = player.obj.position.y();
 
     std::bitset<4> set(player_id == 0 ? p0_input : p1_input);
-    if (set[kInputLeft]) vel_x += FIXED{-kAccelerationX};
-    if (set[kInputRight]) vel_x += FIXED{kAccelerationX};
+    if (set[kInputLeft]) vel_x += FIX{-kAccelerationX};
+    if (set[kInputRight]) vel_x += FIX{kAccelerationX};
 
     // 3. fall
     if (player.state_ == PlayerState::JUMP_DOWN && !player.on_platform_) {
-      vel_y += FIXED{kAccelerationGravity};
+      vel_y += FIX{kAccelerationGravity};
     }
 
     // 2. jump
@@ -90,14 +90,14 @@ void GameState::update(const int p0_input, const int p1_input,
     }
 
     if (!set[kInputLeft] && !set[kInputRight]) {
-      vel_x *= player.on_platform_ ? FIXED{0.5} : FIXED{0.9};
+      vel_x *= player.on_platform_ ? FIX{0.5} : FIX{0.9};
       if (static_cast<int>(vel_x) == 0) vel_x = kZero;
     }
 
-    vel_x = std::clamp(vel_x, FIXED{-kMaxVelocityX}, FIXED{kMaxVelocityX});
-    vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIXED{kMaxVelocityFall});
+    vel_x = std::clamp(vel_x, FIX{-kMaxVelocityX}, FIX{kMaxVelocityX});
+    vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
 
-    player.obj.position += player.obj.velocity * FIXED{frames};
+    player.obj.position += player.obj.velocity * FIX{frames};
 
     for (const auto& platform : platforms_) {
       auto [intersection_x, intersection_y] = isIntersect(player.obj, platform);

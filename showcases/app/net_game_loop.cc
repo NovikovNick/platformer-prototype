@@ -3,7 +3,7 @@
 #include <ggponet.h>
 #include <serializer.h>
 #include <util.h>
-// #include <windows.h>
+#include <windows.h>
 
 #include <chrono>
 #include <thread>
@@ -14,6 +14,7 @@ namespace {
 std::shared_ptr<platformer::GameState> game_state;
 NonGameState ngs;
 GGPOSession *ggpo;
+int local_player, remote_player;
 
 int fletcher32_checksum(short *data, size_t len) {
   int sum1 = 0xffff, sum2 = 0xffff;
@@ -72,13 +73,13 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       break;
     case GGPO_EVENTCODE_RUNNING:
       ngs.SetConnectState(Running);
-      platformer::debug("NGS: {} running\n");
+      platformer::debug("NGS: running\n");
       break;
     case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
       player_id = info->u.connection_interrupted.player;
-      /*ngs.SetDisconnectTimeout(
+      ngs.SetDisconnectTimeout(
           player_id, timeGetTime(),
-          info->u.connection_interrupted.disconnect_timeout);*/
+          info->u.connection_interrupted.disconnect_timeout);
       platformer::debug("NGS: {} interrupted. Not implemented\n", player_id);
       break;
     case GGPO_EVENTCODE_CONNECTION_RESUMED:
@@ -92,9 +93,9 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       platformer::debug("NGS: {} disconnected\n", player_id);
       break;
     case GGPO_EVENTCODE_TIMESYNC:
-      /*Sleep(1000 * info->u.timesync.frames_ahead / 60);
-        auto player_id = info->u.disconnected.player;*/
-      platformer::debug("NGS: {} tymesync. Not implemented\n",
+      Sleep(1000 * info->u.timesync.frames_ahead / 60);
+        auto player_id = info->u.disconnected.player;
+      platformer::debug("NGS: {} tymesync.\n",
                         info->u.timesync.frames_ahead);
       break;
   }
@@ -114,9 +115,10 @@ bool __cdecl vw_advance_frame_callback(int) {
 
   // Make sure we fetch new inputs from GGPO and use those to update
   // the game state instead of reading from the keyboard.
-  /*ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * player_count,
-                         &disconnect_flags);*/
-  // VectorWar_AdvanceFrame(inputs, disconnect_flags);
+  ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * player_count,
+                         &disconnect_flags);
+  game_state->update(inputs[0], inputs[1], 1);
+  platformer::debug("vw_advance_frame_callback\n");
   return true;
 }
 
@@ -128,6 +130,7 @@ bool __cdecl vw_advance_frame_callback(int) {
 bool __cdecl vw_load_game_state_callback(unsigned char *buffer, int len) {
   // memcpy(&gs, buffer, len);
   platformer::Serializer::deserialize(game_state, buffer, len);
+  platformer::debug("deserialized\n");
   return true;
 }
 
@@ -142,6 +145,7 @@ bool __cdecl vw_save_game_state_callback(unsigned char **buffer, int *len,
   bool res = platformer::Serializer::serialize(game_state, buffer, len);
   if (!res) return false;
   *checksum = fletcher32_checksum((short *)*buffer, *len / 2);
+  platformer::debug("serialized\n");
   return true;
 }
 
@@ -189,7 +193,55 @@ bool __cdecl vw_log_game_state(char *filename, unsigned char *buffer, int) {
  *
  * Free a save state buffer previously returned in vw_save_game_state_callback.
  */
-void __cdecl vw_free_buffer(void *buffer) { free(buffer); }
+void __cdecl vw_free_buffer(void *buffer) {
+  // platformer::debug("free buffer\n");
+  free(buffer);
+}
+
+void print(const uint64_t frame, GGPOErrorCode result) {
+  std::string res_str;
+  switch (result) {
+    case GGPO_OK:
+      res_str = "GGPO_OK";
+      break;
+    case GGPO_ERRORCODE_GENERAL_FAILURE:
+      res_str = "GGPO_ERRORCODE_GENERAL_FAILURE";
+      break;
+    case GGPO_ERRORCODE_INVALID_SESSION:
+      res_str = "GGPO_ERRORCODE_INVALID_SESSION";
+      break;
+    case GGPO_ERRORCODE_INVALID_PLAYER_HANDLE:
+      res_str = "GGPO_ERRORCODE_INVALID_PLAYER_HANDLE";
+      break;
+    case GGPO_ERRORCODE_PLAYER_OUT_OF_RANGE:
+      res_str = "GGPO_ERRORCODE_PLAYER_OUT_OF_RANGE";
+      break;
+    case GGPO_ERRORCODE_PREDICTION_THRESHOLD:
+      res_str = "GGPO_ERRORCODE_PREDICTION_THRESHOLD";
+      break;
+    case GGPO_ERRORCODE_UNSUPPORTED:
+      res_str = "GGPO_ERRORCODE_UNSUPPORTED";
+      break;
+    case GGPO_ERRORCODE_NOT_SYNCHRONIZED:
+      res_str = "GGPO_ERRORCODE_NOT_SYNCHRONIZED";
+      break;
+    case GGPO_ERRORCODE_IN_ROLLBACK:
+      res_str = "GGPO_ERRORCODE_IN_ROLLBACK";
+      break;
+    case GGPO_ERRORCODE_INPUT_DROPPED:
+      res_str = "GGPO_ERRORCODE_INPUT_DROPPED";
+      break;
+    case GGPO_ERRORCODE_PLAYER_DISCONNECTED:
+      res_str = "GGPO_ERRORCODE_PLAYER_DISCONNECTED";
+      break;
+    case GGPO_ERRORCODE_INVALID_REQUEST:
+      res_str = "GGPO_ERRORCODE_PLAYER_DISCONNECTED";
+      break;
+    default:
+      res_str = std::to_string(static_cast<int>(result));
+  }
+  platformer::debug("{:5d}: {}\n", frame, res_str);
+}
 }  // namespace
 
 namespace platformer {
@@ -198,7 +250,7 @@ using namespace std::chrono;
 using clock = high_resolution_clock;
 using frame = duration<uint64_t, std::ratio<1, 60>>;
 
-NetGameLoop::NetGameLoop(std::shared_ptr<GameState> gs,
+NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
                          std::shared_ptr<std::atomic<int>> tick,
                          std::shared_ptr<std::atomic<int>> tick_rate,
                          std::shared_ptr<std::atomic<float>> tick_ratio,
@@ -223,34 +275,59 @@ NetGameLoop::NetGameLoop(std::shared_ptr<GameState> gs,
   cb.log_game_state = vw_log_game_state;
 
   const int num_players = 2;
-  unsigned short port = 7000;
+  const int frame_delay = 2;
   auto input_size = sizeof(int);
   const char *title = "platformer";
+
+  ngs.num_players = num_players;
+
+  if (args.local) {
+    local_player = 0;
+    remote_player = 1;
+  } else {
+    local_player = 1;
+    remote_player = 0;
+  }
   GGPOErrorCode res;
-  res = ggpo_start_session(&ggpo, &cb, title, num_players, input_size, port);
-  ggpo_set_disconnect_timeout(ggpo, 3000);
-  ggpo_set_disconnect_notify_start(ggpo, 1000);
-  debug("GGPO session started\n");
-  /*
+
   WSADATA wd = {0};
   WSAStartup(MAKEWORD(2, 2), &wd);
-  */
+  res = ggpo_start_session(&ggpo, &cb, title, num_players, input_size,
+                           args.local_port);
+  ggpo_set_disconnect_timeout(ggpo, 3000);
+  ggpo_set_disconnect_notify_start(ggpo, 1000);
+
   GGPOPlayer players[num_players];
-  players[0].size = sizeof(players[0]);
-  players[0].player_num = 1;
-  players[0].type = GGPO_PLAYERTYPE_LOCAL;
+  players[local_player].size = sizeof(players[local_player]);
+  players[local_player].player_num = local_player + 1;
+  players[local_player].type = GGPO_PLAYERTYPE_LOCAL;
 
-  GGPOPlayerHandle handle;
-  res = ggpo_add_player(ggpo, players + 0, &handle);
-  ngs.players[0].handle = handle;
-  ngs.players[0].type = players[0].type;
-  ngs.players[0].connect_progress = 100;
-  ngs.local_player_handle = handle;
-  ngs.SetConnectState(handle, Connecting);
-  ggpo_set_frame_delay(ggpo, handle, 2);
+  players[remote_player].size = sizeof(players[remote_player]);
+  players[remote_player].player_num = remote_player + 1;
+  players[remote_player].type = GGPO_PLAYERTYPE_REMOTE;
+  for (int i = 0; i < 32; ++i)
+    players[remote_player].u.remote.ip_address[i] = args.ip[i];
+  players[remote_player].u.remote.port = args.remote_port;
 
-  // ngs.players[i].connect_progress = 0;
-};
+  for (int i = 0; i < num_players; i++) {
+    GGPOPlayerHandle handle;
+    auto addr = players + i;
+    res = ggpo_add_player(ggpo, addr, &handle);
+    ngs.players[i].handle = handle;
+    ngs.players[i].type = players[i].type;
+    if (players[i].type == GGPO_PLAYERTYPE_LOCAL) {
+      ngs.players[i].connect_progress = 100;
+      ngs.local_player_handle = handle;
+      ngs.SetConnectState(handle, Connecting);
+      ggpo_set_frame_delay(ggpo, handle, frame_delay);
+    } else {
+      ngs.players[i].connect_progress = 0;
+    }
+  }
+
+  debug("Connecting to peers\n");
+}
+NetGameLoop::~NetGameLoop() { WSACleanup(); };
 
 void NetGameLoop::operator()() {
   running_ = true;
@@ -260,11 +337,14 @@ void NetGameLoop::operator()() {
   float dx = 0;
   float micro = 0;
   int frame_per_tick, tick_rate;
+  int input;
 
   GGPOErrorCode result = GGPO_OK;
+  int disconnect_flags;
+  int inputs[2] = {0};
 
   while (running_) {
-    ggpo_idle(ggpo, 0);
+    result = ggpo_idle(ggpo, 0);
 
     t1 = clock::now();
     auto next_frame = duration_cast<frame>(t1 - t0).count();
@@ -280,11 +360,36 @@ void NetGameLoop::operator()() {
       frame_ = next_frame;
 
       if (next_frame % frame_per_tick == 0) {
-        auto input = p0_input_->load();
-        // result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input,
-        // sizeof(input));
+        if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
+          input = local_player == 0 ? p0_input_->load() : p1_input_->load();
+          result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input,
+                                        sizeof(input));
+        }
+        print(frame_, result);
+        // synchronize these inputs with ggpo.  If we have enough input to
+        // proceed ggpo will modify the input list with the correct inputs to
+        // use and return 1.
+        if (GGPO_SUCCEEDED(result)) {
+          result = ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * 2,
+                                          &disconnect_flags);
+          if (GGPO_SUCCEEDED(result)) {
+            
+            // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
+            // the game by 1 frame using those inputs.
+            game_state->update(inputs[0], inputs[1], 1);
+
+            // update the checksums to display in the top of the window.  this
+            // helps to detect desyncs.
+            ngs.now.framenumber = frame_;
+            /*ngs.now.checksum =
+                fletcher32_checksum((short *)&gs, sizeof(gs) / 2);
+            if ((gs._framenumber % 90) == 0) {
+              ngs.periodic = ngs.now;
+            }*/
+            ggpo_advance_frame(ggpo);
+          }
+        }
         tick_->fetch_add(1);
-        game_state->update(input, p1_input_->load(), 1);
         t2 = t1;
       }
     }

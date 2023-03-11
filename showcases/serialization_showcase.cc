@@ -146,7 +146,7 @@ int main() {
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
-            platformer::debug("FIXED({}), FIXED({})\n", x - x % 32, y - y % 32);
+            platformer::debug("FIX({}), FIX({})\n", x - x % 32, y - y % 32);
             fst_player_active = !fst_player_active;
           }
           break;

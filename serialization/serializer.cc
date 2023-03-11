@@ -12,8 +12,7 @@ static ser::Vector2 convert(const VECTOR_2& src) {
   return dst;
 }
 static VECTOR_2 convert(const ser::Vector2& src) {
-  return VECTOR_2{FIXED::from_raw_value(src.x()),
-                  FIXED::from_raw_value(src.y())};
+  return VECTOR_2{FIX::from_raw_value(src.x()), FIX::from_raw_value(src.y())};
 }
 
 static ser::GameObject convert(const platformer::GameObject& src) {
@@ -106,7 +105,7 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
                              unsigned char* buffer, int len) {
   ser::GameState serialized;
   auto res = serialized.ParseFromArray(buffer, len);
-  
+
   auto lock = gs->lock();
   gs->players_.clear();
   gs->platforms_.clear();

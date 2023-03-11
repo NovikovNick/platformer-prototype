@@ -28,10 +28,10 @@ void PlayerShape::update(const float delta) {
 
   {  // velocity vector
     auto prev_pos = prev_.position;
-    auto prev_vel = prev_.velocity * FIXED{10};
+    auto prev_vel = prev_.velocity * FIX{10};
 
     auto curr_pos = curr_.position;
-    auto curr_vel = curr_.velocity * FIXED{10};
+    auto curr_vel = curr_.velocity * FIX{10};
 
     auto prev_pos_x = static_cast<float>(prev_pos.x());
     auto prev_pos_y = static_cast<float>(prev_pos.y());

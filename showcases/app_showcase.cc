@@ -8,6 +8,7 @@
 #include <fpm/fixed.hpp>
 #include <iostream>
 
+#include "app/input_args.h"
 #include "app/net_game_loop.h"
 #include "game_object.h"
 #include "game_state.h"
@@ -17,7 +18,9 @@
 #include "ui/vector_product_visualizer.h"
 
 using namespace std::chrono;
-
+#define ARRAYSIZE(a)            \
+  ((sizeof(a) / sizeof(*(a))) / \
+   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 namespace {
 
 const static sf::Color kBGColor(35, 35, 35);
@@ -25,18 +28,49 @@ const static sf::Color kFstColor(255, 100, 0);
 const static sf::Color kSndColor(255, 17, 17);
 const static sf::Color kTrdColor(255, 255, 255);
 
+InputArgs validateAndParseInput(int argc, char* argv[]) {
+  if (argc >= 4) {
+    auto local_str = std::string(argv[1]);
+    auto local_port_str = std::string(argv[2]);
+    auto remode_addr_str = std::string(argv[3]);
+    
+    InputArgs res;
+    res.local = local_str == "local";
+    res.local_port = std::stoi(local_port_str);
+
+    int i = 0;
+    for (; remode_addr_str[i] != ':'; ++i) res.ip[i] = remode_addr_str[i];
+    res.ip[i++] = '\0';
+    std::string remote_port(remode_addr_str.begin() + i, remode_addr_str.end());
+    res.remote_port = std::stoi(remote_port);
+
+    platformer::debug("local peer : localhost:{}\n", res.local_port);
+    platformer::debug("remote peer: {}:{}\n", res.ip, res.remote_port);
+    return res;
+  } else {
+    platformer::debug("There are only {} args!\n", argc);
+    for (int i = 0; i < argc; ++i) platformer::debug("arg: {}\n", argv[i]);
+    return {};
+  }
+}
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  platformer::debug("There are {} arguments\n", argc);
-  for (int i = 0; i < argc; ++i) platformer::debug("arg: {}\n", argv[i]);
+  auto args = validateAndParseInput(argc, argv);
 
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
   auto mode = sf::VideoMode(896, 896);
   auto style = sf::Style::Default;
   sf::RenderWindow window(mode, "Generic Platformer", style, settings);
-
+  bool fst_player_active;
+  if (args.local) {
+    window.setPosition({0, 0});
+    fst_player_active = true;
+  } else {
+    window.setPosition({1000, 0});
+    fst_player_active = false;
+  }
   // reduce the framerate to minimize laptop overheat :(
   // window.setFramerateLimit(24);
   window.setFramerateLimit(60);
@@ -71,20 +105,9 @@ int main(int argc, char* argv[]) {
   auto tick_ratio = std::make_shared<std::atomic<float>>(0);
   auto p0_input = std::make_shared<std::atomic<int>>(0);
   auto p1_input = std::make_shared<std::atomic<int>>(0);
-  platformer::NetGameLoop game_loop(gs, tick, tick_rate, tick_ratio, p0_input,
-                                    p1_input);
+  platformer::NetGameLoop game_loop(args, gs, tick, tick_rate, tick_ratio,
+                                    p0_input, p1_input);
   std::thread(game_loop).detach();
-
-  // Network thread
-  std::thread([gs = gs]() {
-    while (true) {
-      std::this_thread::sleep_until(steady_clock::now() + 1ms);
-      unsigned char* buf = nullptr;
-      int length;
-      platformer::Serializer::serialize(gs, &buf, &length);
-      platformer::Serializer::deserialize(gs, buf, length);
-    }
-  }).detach();
 
   int prev_tick = tick->load();
   int curr_tick = prev_tick;
@@ -92,7 +115,6 @@ int main(int argc, char* argv[]) {
   platformer::PlayerShape p0{kTrdColor, kSndColor, gs->getPlayer(0)};
   platformer::PlayerShape p1{kTrdColor, kSndColor, gs->getPlayer(1)};
   float t = tick_ratio->load();  // requires for lerp
-  bool fst_player_active = true;
 
   while (window.isOpen()) {
     t1 = steady_clock::now();
@@ -145,8 +167,7 @@ int main(int argc, char* argv[]) {
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
-            platformer::debug("FIXED({}), FIXED({})\n", x - x % 32, y - y % 32);
-            fst_player_active = !fst_player_active;
+            platformer::debug("FIX({}), FIX({})\n", x - x % 32, y - y % 32);
           }
           break;
         case sf::Event::MouseButtonReleased:
