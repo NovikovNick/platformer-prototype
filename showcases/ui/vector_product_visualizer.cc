@@ -122,12 +122,6 @@ void VectorProductVisualizer::update(const Eigen::Vector2f mouse_position,
                                      const bool lft_mouse_pressed) {
   drag_ = lft_mouse_pressed;
   update(mouse_position);
-
-  if (!lft_mouse_pressed)
-    platformer::debug(
-        "update({{{:4.0f},{:4.0f}}}, {{{:4.0f},{:4.0f}}}, "
-        "{{{:4.0f},{:4.0f}}});\n",
-        lhs_.x(), lhs_.y(), rhs_.x(), rhs_.y(), origin_.x(), origin_.y());
 };
 
 void VectorProductVisualizer::update(const Eigen::Vector2f mouse_position) {

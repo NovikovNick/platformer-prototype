@@ -1,12 +1,15 @@
 #include "game_state.h"
 
+#include <util.h>
+
 #include <bitset>
+#include <sml.hpp>
 
 namespace {
 
 inline FIX length(const FIX& x, const FIX& y) {
   return FIX{std::sqrt(std::pow(static_cast<int>(x), 2) +
-                         std::pow(static_cast<int>(y), 2))};
+                       std::pow(static_cast<int>(y), 2))};
 }
 
 inline VECTOR_2 normal(const VECTOR_2& val) {
@@ -15,7 +18,7 @@ inline VECTOR_2 normal(const VECTOR_2& val) {
 }
 
 std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
-                                    const platformer::GameObject& rhs) {
+                                const platformer::GameObject& rhs) {
   auto [lhs_min_x, lhs_max_x] = lhs.getProjectionMinMax(0);
   auto [rhs_min_x, rhs_max_x] = rhs.getProjectionMinMax(0);
   auto [lhs_min_y, lhs_max_y] = lhs.getProjectionMinMax(1);
@@ -38,10 +41,103 @@ std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
 
 namespace platformer {
 
+struct InputLKM {};
+struct InputLeft {};
+struct InputRight {};
+struct InputUp {};
+struct InputDown {};
+struct InputNone {};
+
+class idle;
+class run;
+class jump;
+class falling;
+class landing;
+class attack_on_ground;
+class death;
+
+const auto onGround = [](const Player& ctx) { return ctx.on_ground; };
+const auto inAir = [](const Player& ctx) { return !ctx.on_ground; };
+struct FrameLessOrEqualThen {
+  int frame;
+  auto operator()(const Player& ctx) const { return ctx.state_frame <= frame; }
+};
+struct FrameGreatThen {
+  int frame;
+  auto operator()(const Player& ctx) const { return ctx.state_frame > frame; }
+};
+
+auto idle_s = boost::sml::state<idle>;
+auto run_s = boost::sml::state<run>;
+auto jump_s = boost::sml::state<jump>;
+auto falling_s = boost::sml::state<falling>;
+auto landing_s = boost::sml::state<landing>;
+auto attack_s = boost::sml::state<attack_on_ground>;
+auto death_s = boost::sml::state<death>;
+
+auto input_up = boost::sml::event<InputUp>;
+auto input_none = boost::sml::event<InputNone>;
+auto input_left = boost::sml::event<InputLeft>;
+auto input_right = boost::sml::event<InputRight>;
+auto input_attack = boost::sml::event<InputLKM>;
+
+struct transition_table {
+  auto operator()() const {
+    using namespace boost::sml;
+    /**
+     * Initial state: *initial_state
+     * Transition DSL: src_state + event [ guard ] / action = dst_state
+     */
+    return make_transition_table(
+        *idle_s + input_none[onGround] = idle_s,
+        idle_s + input_left[onGround] = run_s,
+        idle_s + input_right[onGround] = run_s,
+        idle_s + input_up[onGround] = jump_s,
+        idle_s + input_attack[onGround] = attack_s,
+        idle_s + input_none[inAir] = falling_s,
+
+        landing_s + input_none[onGround && FrameLessOrEqualThen{2}] = idle_s,
+        landing_s + input_none[onGround && FrameGreatThen{2}] = idle_s,
+        landing_s + input_none[inAir] = falling_s,
+
+        attack_s + input_none[onGround && FrameLessOrEqualThen{5}] = attack_s,
+        attack_s + input_none[onGround && FrameGreatThen{5}] = idle_s,
+        attack_s + input_none[inAir] = falling_s,
+
+        run_s + input_none[onGround] = idle_s,
+        run_s + input_left[onGround] = run_s,
+        run_s + input_right[onGround] = run_s,
+        run_s + input_up[onGround] = jump_s,
+        run_s + input_attack[onGround] = attack_s,
+        run_s + input_none[inAir] = falling_s,
+
+        jump_s + input_none[inAir && FrameLessOrEqualThen{kJump - 1}] = jump_s,
+        jump_s + input_none[inAir && FrameGreatThen{kJump - 1}] = falling_s,
+        jump_s + input_none[onGround] = landing_s,
+
+        falling_s + input_none[onGround] = landing_s);
+  }
+};
+
+PlayerState getState(const auto& sm) {
+  if (sm.is(idle_s)) return PlayerState::IDLE;
+  if (sm.is(run_s)) return PlayerState::RUN;
+  if (sm.is(jump_s)) return PlayerState::JUMP;
+  if (sm.is(falling_s)) return PlayerState::FALLING;
+  if (sm.is(landing_s)) return PlayerState::LANDING;
+  if (sm.is(attack_s)) return PlayerState::ATTACK_ON_GROUND;
+  return PlayerState::DEATH;
+}
+
+std::vector<boost::sml::sm<transition_table>> fsms_;
+
 GameState::GameState()
-    : platforms_(std::vector<GameObject>{}), players_(std::vector<Player>{}) {
+    : players_(std::vector<Player>{}),
+      melee_attack(std::vector<GameObject>{}),
+      platforms_(std::vector<GameObject>{}) {
   players_.emplace_back().obj.position = {FIX(192), FIX(768)};
   players_.emplace_back().obj.position = {FIX(96), FIX(768)};
+
 
   std::vector<VECTOR_2> mesh{
       {kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}};
@@ -50,98 +146,107 @@ GameState::GameState()
   platforms_.emplace_back(224, 32, mesh).position = {FIX(672), FIX(736)};
   platforms_.emplace_back(32, 256, mesh).position = {FIX(0), FIX(640)};
   platforms_.emplace_back(32, 256, mesh).position = {FIX(864), FIX(640)};
+
+  melee_attack.emplace_back(0, 0, mesh);
+  melee_attack.emplace_back(0, 0, mesh);
+
+  using namespace boost::sml;
+  fsms_.emplace_back(players_[0]);
+  fsms_.emplace_back(players_[1]);
+}
+
+GameState::GameState(GameState& src) {
+  players_ = src.players_;
+  platforms_ = src.platforms_;
+  melee_attack = src.melee_attack;
 }
 
 void GameState::update(const int p0_input, const int p1_input,
                        const int frames) {
   std::scoped_lock lock{mutex_};
+
   for (int player_id = 0; player_id < 2; ++player_id) {
     auto& player = players_[player_id];
+    auto& fsm = fsms_[player_id];
+
     auto& vel_x = player.obj.velocity.x();
     auto& vel_y = player.obj.velocity.y();
-    auto& pos_x = player.obj.position.x();
-    auto& pos_y = player.obj.position.y();
 
-    std::bitset<4> set(player_id == 0 ? p0_input : p1_input);
-    if (set[kInputLeft]) vel_x += FIX{-kAccelerationX};
-    if (set[kInputRight]) vel_x += FIX{kAccelerationX};
+    std::bitset<5> input(player_id == 0 ? p0_input : p1_input);
+    std::bitset<5> prev_input(player.prev_input);
 
-    // 3. fall
-    if (player.state_ == PlayerState::JUMP_DOWN && !player.on_platform_) {
-      vel_y += FIX{kAccelerationGravity};
+    if (input[kInputLeft]) vel_x += FIX{-kAccelerationX};
+    if (input[kInputRight]) vel_x += FIX{kAccelerationX};
+
+    // 1. update FSM
+    ++player.state_frame;
+
+    fsm.process_event(InputNone{});
+    if (input[kInputLeft]) {
+      fsm.process_event(InputLeft{});
+      player.look_at_left = true;
+    }
+    if (input[kInputRight]) {
+      fsm.process_event(InputRight{});
+      player.look_at_left = false;
+    }
+    if (input[kInputUp] && !prev_input[kInputUp]) fsm.process_event(InputUp{});
+    if (input[kInputLKM] && !prev_input[kInputLKM])
+      fsm.process_event(InputLKM{});
+    player.prev_input = input.to_ulong();
+
+    player.updateState(getState(fsm));
+
+    // 2. update input
+    if (player.is(PlayerState::FALLING)) vel_y += FIX{kAccelerationGravity};
+    if (player.is(PlayerState::ATTACK_ON_GROUND)) {
+      melee_attack[player_id].position.x() = player.obj.position.x();
+      melee_attack[player_id].position.y() =
+          player.obj.position.y() - player.obj.height_ / 2;
+      melee_attack[player_id].width_ =
+          16 * player.state_frame * (player.look_at_left ? -1 : 1);
+      melee_attack[player_id].height_ = player.obj.height_;
+    } else {
+      melee_attack[player_id].width_ = 0;
+      melee_attack[player_id].height_ = 0;
     }
 
-    // 2. jump
-    if (!player.on_platform_) {
-      if (player.state_ == PlayerState::JUMP_UP && player.frame_ < kJump) {
-        ++player.frame_;
-        vel_y = -kJumpDelta * (kJump - player.frame_);
-      } else {
-        player.updateFrame(PlayerState::JUMP_DOWN);
-      }
-    }
+    if (player.is(PlayerState::JUMP))
+      vel_y = -kJumpDelta * (kJump - player.state_frame);
 
-    // todo: avoid multiple click
-    // 1. start jump
-    if (set[kInputUp] && player.on_platform_) {
-      vel_y = -kJumpDelta * kJump;
-      player.state_ = PlayerState::JUMP_UP;
-      player.frame_ = 0;
-    }
-
-    if (!set[kInputLeft] && !set[kInputRight]) {
-      vel_x *= player.on_platform_ ? FIX{0.5} : FIX{0.9};
+    if (player.is(PlayerState::ATTACK_ON_GROUND) ||
+        (!input[kInputLeft] && !input[kInputRight])) {
+      vel_x *= player.on_ground ? FIX{0.5} : FIX{0.9};
       if (static_cast<int>(vel_x) == 0) vel_x = kZero;
     }
 
     vel_x = std::clamp(vel_x, FIX{-kMaxVelocityX}, FIX{kMaxVelocityX});
     vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
 
+    // 3. apply
     player.obj.position += player.obj.velocity * FIX{frames};
 
+    // 4. resolve collisions
     for (const auto& platform : platforms_) {
       auto [intersection_x, intersection_y] = isIntersect(player.obj, platform);
       if (intersection_x != kZero && intersection_y != kZero) {
         int x = std::abs(static_cast<int>(intersection_x));
         int y = std::abs(static_cast<int>(intersection_y));
-
-        if (x < y) {
-          player.obj.position.x() += intersection_x;
-        } else if (x > y) {
-          player.obj.position.y() += intersection_y;
-        } else {
-          player.obj.position += VECTOR_2{intersection_x, intersection_y};
-        }
+        if (x <= y) player.obj.position.x() += intersection_x;
+        if (x >= y) player.obj.position.y() += intersection_y;
       }
     }
+    player.on_ground = checkPlatform(player_id);
+    if (player.on_ground && vel_y > kZero) vel_y = kZero;
 
-    player.on_platform_ = checkPlatform(player_id);
-    if (player.on_platform_) {
-      player.updateFrame(set[kInputLeft] || set[kInputRight]
-                             ? PlayerState::RUN
-                             : PlayerState::IDLE);
-      if (vel_y > kZero) vel_y = kZero;
-    }
-
-    /*switch (state_) {
-      case PlayerState::IDLE:
-        debug("{:4s}#{:3d} ", "idle", frame_);
-        break;
-      case PlayerState::RUN:
-        debug("{:4s}#{:3d} ", "run", frame_);
-        break;
-      case PlayerState::JUMP_UP:
-        debug("{:4s}#{:3d} ", "up", frame_);
-        break;
-      case PlayerState::JUMP_DOWN:
-        debug("{:4s}#{:3d} ", "down", frame_);
-        break;
-    }
-    debug("pos[{:8.3f},{:8.3f}] vel[{:8.3f},{:8.3f}]\n",
-          static_cast<float>(pos_x), static_cast<float>(pos_y),
-          static_cast<float>(vel_x), static_cast<float>(vel_y));*/
+    // 5. TODO: resolve damage
   }
 }
+
+GameState GameState::getStateProjection() {
+  std::scoped_lock lock{mutex_};
+  return *this;
+};
 
 GameObject GameState::getPlayer(const int player_id) {
   std::scoped_lock lock{mutex_};

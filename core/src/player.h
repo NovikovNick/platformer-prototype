@@ -4,17 +4,26 @@
 
 namespace platformer {
 
-enum class PlayerState { IDLE, RUN, JUMP_UP, JUMP_DOWN };
+enum class PlayerState {
+  IDLE = 0,
+  RUN = 1,
+  JUMP = 2,
+  FALLING = 3,
+  LANDING = 4,
+  ATTACK_ON_GROUND = 5,
+  DEATH = 6
+};
 
 class Player {
  public:
   GameObject obj;
-  PlayerState state_;
-  uint64_t frame_;
-  bool on_platform_;
-  // direction left/right
+  PlayerState state;
+  uint64_t state_frame;
+  int prev_input;
+  bool on_ground, on_damage, look_at_left;
   Player();
-  void updateFrame(const PlayerState state);
+  void updateState(const PlayerState state);
+  bool is(const PlayerState state) const;
 };
 
 };      // namespace platformer

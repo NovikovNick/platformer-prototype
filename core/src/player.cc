@@ -3,16 +3,25 @@
 namespace platformer {
 
 Player::Player()
-    : state_(PlayerState::IDLE),
-      on_platform_(false),
+    : state(PlayerState::IDLE),
+      state_frame(0),
+      prev_input(0),
+      on_ground(false),
+      on_damage(false),
+      look_at_left(false),
       obj(GameObject(64, 128,
                      {{FIX(-0.5), FIX(0.5)},
                       {FIX(0.5), FIX(0.5)},
                       {FIX(0.5), FIX(-0.5)},
                       {FIX(-0.5), FIX(-0.5)}})){};
 
-void Player::updateFrame(const PlayerState state) {
-  frame_ = state_ != state ? 0 : frame_ + 1;
-  state_ = state;
-}
+void Player::updateState(const PlayerState new_state) {
+  if (state != new_state) {
+    state = new_state;
+    state_frame = 0;
+  }
+};
+bool Player::is(const PlayerState other_state) const {
+  return state == other_state;
+};
 }  // namespace platformer

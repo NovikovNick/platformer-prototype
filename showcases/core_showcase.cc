@@ -14,6 +14,7 @@
 #include "ui/player_shape.h"
 #include "ui/scalable_grid.h"
 #include "ui/vector_product_visualizer.h"
+#include "util.h"
 
 using namespace std::chrono;
 
@@ -23,6 +24,25 @@ const static sf::Color kBGColor(35, 35, 35);
 const static sf::Color kFstColor(255, 100, 0);
 const static sf::Color kSndColor(255, 17, 17);
 const static sf::Color kTrdColor(255, 255, 255);
+
+std::string toString(const platformer::PlayerState& state) {
+  switch (state) {
+    case platformer::PlayerState::IDLE:
+      return "IDLE";
+    case platformer::PlayerState::RUN:
+      return "RUN";
+    case platformer::PlayerState::JUMP:
+      return "JUMP";
+    case platformer::PlayerState::FALLING:
+      return "FALLING";
+    case platformer::PlayerState::LANDING:
+      return "LANDING";
+    case platformer::PlayerState::ATTACK_ON_GROUND:
+      return "ATTACK";
+    case platformer::PlayerState::DEATH:
+      return "DEATH";
+  }
+}
 
 }  // namespace
 
@@ -59,7 +79,7 @@ int main() {
   auto t0 = steady_clock::now();
   auto t1 = steady_clock::now();
   float elapsed = 0, dx = 0;
-  std::bitset<4> input_bitset(0);
+  std::bitset<5> input_bitset(0);
 
   auto gs = std::make_shared<platformer::GameState>();
   auto tick = std::make_shared<std::atomic<int>>(0);
@@ -130,22 +150,22 @@ int main() {
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
-            platformer::debug("FIX({}), FIX({})\n", x - x % 32, y - y % 32);
-            fst_player_active = !fst_player_active;
+            input_bitset[kInputLKM] = true;
+            //fst_player_active = !fst_player_active;
           }
           break;
         case sf::Event::MouseButtonReleased:
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, false);
+            input_bitset[kInputLKM] = false;
           }
           break;
         case sf::Event::MouseMoved: {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
           // info.update(mouse_index, x, y);
-          gs->getPlatforms()[1].position = {FIX(x - x % 32),
-                                            FIX(y - y % 32)};
+          gs->getPlatforms()[1].position = {FIX(x - x % 32), FIX(y - y % 32)};
           break;
         }
         case sf::Event::MouseWheelMoved: {
@@ -156,7 +176,7 @@ int main() {
         }
       }
     }
-
+    
     if (fst_player_active) {
       p0_input->store(input_bitset.to_ulong());
     } else {
@@ -172,7 +192,17 @@ int main() {
     }
     p0.update(t);
     p1.update(t);
+
+    platformer::GameState gs_copy = gs->getStateProjection();
     // info.update(tick_index, curr_tick, tick_rate->load(), t);
+
+    platformer::debug("{:7s}#{:3d}: ", toString(gs_copy.players_[0].state),
+                      gs_copy.players_[0].state_frame);
+    platformer::debug("pos[{:8.3f},{:8.3f}] vel[{:8.3f},{:8.3f}]\n",
+                      static_cast<float>(gs_copy.players_[0].obj.position.x()),
+                      static_cast<float>(gs_copy.players_[0].obj.position.y()),
+                      static_cast<float>(gs_copy.players_[0].obj.velocity.x()),
+                      static_cast<float>(gs_copy.players_[0].obj.velocity.y()));
 
     std::vector<sf::VertexArray> platform_shapes;
     for (const auto& platform : gs->getPlatforms()) {
@@ -185,13 +215,25 @@ int main() {
       platform_shapes.push_back(platform_shape);
     }
 
+    std::vector<sf::VertexArray> melee_shapes;
+    for (const auto& melee_atack : gs_copy.melee_attack) {
+      sf::VertexArray platform_shape(sf::Quads, 4);
+      for (int i = 0; i < melee_atack.size(); ++i) {
+        platform_shape[i].position.x = static_cast<float>(melee_atack[i].x());
+        platform_shape[i].position.y = static_cast<float>(melee_atack[i].y());
+        platform_shape[i].color = kSndColor;
+      }
+      melee_shapes.push_back(platform_shape);
+    }
+
     window.clear(kBGColor);
     window.draw(grid);
-    window.draw(visualizer);
+    //window.draw(visualizer);
     window.draw(info);
     for (const auto& it : platform_shapes) window.draw(it);
     window.draw(p0);
     window.draw(p1);
+    for (const auto& it : melee_shapes) window.draw(it);
     window.display();
   }
   return 0;

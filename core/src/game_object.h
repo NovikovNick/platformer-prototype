@@ -21,6 +21,7 @@ const static int kInputLeft = 0;
 const static int kInputRight = 1;
 const static int kInputUp = 2;
 const static int kInputDown = 3;
+const static int kInputLKM = 4;
 
 // braking:               4  frame
 const static int kJumpHeight = 128;

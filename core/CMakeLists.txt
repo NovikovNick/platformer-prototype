@@ -14,7 +14,9 @@ target_sources(core
 target_link_libraries(core 
 	PUBLIC 
 		fpm::fpm
-		Eigen3::Eigen)
+		Eigen3::Eigen
+	PRIVATE
+		boost_ext::sml)
 target_include_directories(core 
 	PUBLIC 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
