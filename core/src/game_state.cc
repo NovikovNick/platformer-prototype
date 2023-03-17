@@ -100,8 +100,9 @@ struct transition_table {
         landing_s + input_none[onGround && FrameGreatThen{2}] = idle_s,
         landing_s + input_none[inAir] = falling_s,
 
-        attack_s + input_none[onGround && FrameLessOrEqualThen{5}] = attack_s,
-        attack_s + input_none[onGround && FrameGreatThen{5}] = idle_s,
+        attack_s + input_none[onGround && FrameLessOrEqualThen{kAttack - 1}] =
+            attack_s,
+        attack_s + input_none[onGround && FrameGreatThen{kAttack - 1}] = idle_s,
         attack_s + input_none[inAir] = falling_s,
 
         run_s + input_none[onGround] = idle_s,
@@ -138,7 +139,6 @@ GameState::GameState()
   players_.emplace_back().obj.position = {FIX(192), FIX(768)};
   players_.emplace_back().obj.position = {FIX(96), FIX(768)};
 
-
   std::vector<VECTOR_2> mesh{
       {kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}};
   platforms_.emplace_back(864, 32, mesh).position = {FIX(0), FIX(864)};
@@ -163,6 +163,7 @@ GameState::GameState(GameState& src) {
 
 void GameState::update(const int p0_input, const int p1_input,
                        const int frames) {
+  int player_count = 2;
   std::scoped_lock lock{mutex_};
 
   for (int player_id = 0; player_id < 2; ++player_id) {
@@ -204,7 +205,7 @@ void GameState::update(const int p0_input, const int p1_input,
       melee_attack[player_id].position.y() =
           player.obj.position.y() - player.obj.height_ / 2;
       melee_attack[player_id].width_ =
-          16 * player.state_frame * (player.look_at_left ? -1 : 1);
+          24 * player.state_frame * (player.look_at_left ? -1 : 1);
       melee_attack[player_id].height_ = player.obj.height_;
     } else {
       melee_attack[player_id].width_ = 0;
@@ -238,8 +239,20 @@ void GameState::update(const int p0_input, const int p1_input,
     }
     player.on_ground = checkPlatform(player_id);
     if (player.on_ground && vel_y > kZero) vel_y = kZero;
+  }
 
-    // 5. TODO: resolve damage
+  // 5. resolve damage
+  for (int player_id = 0; player_id < kPlayerCount; ++player_id) {
+    players_[player_id].on_damage = false;
+  }
+  for (int i = 0; i < kPlayerCount; ++i) {
+    for (int player_id = 0; player_id < kPlayerCount; ++player_id) {
+      if (player_id == i) continue;
+      auto [x, y] = isIntersect(melee_attack[i], players_[player_id].obj);
+      if (x != kZero && y != kZero) {
+        players_[player_id].on_damage = true;
+      }
+    }
   }
 }
 

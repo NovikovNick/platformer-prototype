@@ -1,7 +1,5 @@
 #include "info.h"
 
-#include <format>
-
 namespace platformer {
 
 Info::Info(const sf::Font& font, const sf::Color text_color)
@@ -17,11 +15,6 @@ int Info::addFormat(const std::string& format) {
   rows_[index].setFillColor(text_color);
   rows_[index].setPosition(10, index * 20 + 10);
   return index;
-}
-
-template <typename... Args>
-void Info::update(const int i, Args... args) {
-  rows_[i].setString(std::vformat(formats_[i], std::make_format_args(args...)));
 }
 
 void Info::draw(sf::RenderTarget& target, sf::RenderStates states) const {

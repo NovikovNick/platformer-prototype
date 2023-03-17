@@ -18,6 +18,7 @@ class PlayerShape : public sf::Drawable {
   PlayerShape(const sf::Color main_color, const sf::Color velocity_color,
               const platformer::GameObject curr);
   void update(const platformer::GameObject curr);
+  void update(const sf::Color main_color);
   void update(const float delta);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };

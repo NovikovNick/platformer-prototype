@@ -13,6 +13,9 @@ PlayerShape::PlayerShape(const sf::Color main_color,
 void PlayerShape::update(const platformer::GameObject curr) {
   prev_ = curr_;
   curr_ = curr;
+}
+void PlayerShape::update(const sf::Color main_color){
+  for (int i = 0; i < 4; ++i) player_shape_[i].color = main_color;
 };
 
 void PlayerShape::update(const float delta) {

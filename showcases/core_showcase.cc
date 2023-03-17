@@ -68,7 +68,9 @@ int main() {
   const int dx_index = info.addFormat("Delta(sec): {:.6f}\n");
   const int tick_index = info.addFormat("Tick#{:4d}({:2d})- {:4.2f}%\n");
   const int mouse_index = info.addFormat("Mouse[{:4d},{:4d}]\n");
-  const int intersection_index = info.addFormat("Intersect[{:4d},{:4d}]\n");
+  const int player_state_index = info.addFormat("State: {:7s}#{:3d}\n");
+  const int player_pos_index = info.addFormat("Position[{:8.3f},{:8.3f}]\n");
+  const int player_vel_index = info.addFormat("Velocity[{:8.3f},{:8.3f}]\n");
 
   platformer::VectorProductVisualizer visualizer(font, kBGColor, kSndColor,
                                                  kTrdColor);
@@ -105,8 +107,8 @@ int main() {
     elapsed += dx;
     t0 = t1;
 
-    // info.update(fps_index, 1 / dx);
-    // info.update(dx_index, dx);
+    info.update(fps_index, 1 / dx);
+    info.update(dx_index, dx);
 
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -151,7 +153,7 @@ int main() {
             auto [_, x, y] = event.mouseButton;
             visualizer.update({x, y}, true);
             input_bitset[kInputLKM] = true;
-            //fst_player_active = !fst_player_active;
+            // fst_player_active = !fst_player_active;
           }
           break;
         case sf::Event::MouseButtonReleased:
@@ -164,7 +166,7 @@ int main() {
         case sf::Event::MouseMoved: {
           auto [x, y] = event.mouseMove;
           visualizer.update({x, y});
-          // info.update(mouse_index, x, y);
+          info.update(mouse_index, x, y);
           gs->getPlatforms()[1].position = {FIX(x - x % 32), FIX(y - y % 32)};
           break;
         }
@@ -176,33 +178,42 @@ int main() {
         }
       }
     }
-    
+
     if (fst_player_active) {
       p0_input->store(input_bitset.to_ulong());
     } else {
       p1_input->store(input_bitset.to_ulong());
     }
 
+    platformer::GameState gs_copy = gs->getStateProjection();
     curr_tick = tick->load();
     t = tick_ratio->load();
     if (prev_tick != curr_tick) {
       prev_tick = curr_tick;
       p0.update(gs->getPlayer(0));
       p1.update(gs->getPlayer(1));
+      p0.update(gs_copy.players_[0].on_damage ? kFstColor : kTrdColor);
+      p1.update(gs_copy.players_[1].on_damage ? kFstColor : kTrdColor);
     }
     p0.update(t);
     p1.update(t);
 
-    platformer::GameState gs_copy = gs->getStateProjection();
-    // info.update(tick_index, curr_tick, tick_rate->load(), t);
+    {  // info + console
+      auto& p = gs_copy.players_[0];
+      auto pos_x = static_cast<float>(p.obj.position.x());
+      auto pos_y = static_cast<float>(p.obj.position.y());
+      auto vel_x = static_cast<float>(p.obj.velocity.x());
+      auto vel_y = static_cast<float>(p.obj.velocity.y());
 
-    platformer::debug("{:7s}#{:3d}: ", toString(gs_copy.players_[0].state),
-                      gs_copy.players_[0].state_frame);
-    platformer::debug("pos[{:8.3f},{:8.3f}] vel[{:8.3f},{:8.3f}]\n",
-                      static_cast<float>(gs_copy.players_[0].obj.position.x()),
-                      static_cast<float>(gs_copy.players_[0].obj.position.y()),
-                      static_cast<float>(gs_copy.players_[0].obj.velocity.x()),
-                      static_cast<float>(gs_copy.players_[0].obj.velocity.y()));
+      info.update(tick_index, curr_tick, tick_rate->load(), t);
+      info.update(player_state_index, toString(p.state), p.state_frame);
+      info.update(player_pos_index, pos_x, pos_y);
+      info.update(player_vel_index, vel_x, vel_y);
+
+      platformer::debug("{:7s}#{:3d}: ", toString(p.state), p.state_frame);
+      platformer::debug("pos[{:8.3f},{:8.3f}]", pos_x, pos_y);
+      platformer::debug("vel[{:8.3f},{:8.3f}]\n", vel_x, vel_y);
+    }
 
     std::vector<sf::VertexArray> platform_shapes;
     for (const auto& platform : gs->getPlatforms()) {
@@ -228,7 +239,6 @@ int main() {
 
     window.clear(kBGColor);
     window.draw(grid);
-    //window.draw(visualizer);
     window.draw(info);
     for (const auto& it : platform_shapes) window.draw(it);
     window.draw(p0);
