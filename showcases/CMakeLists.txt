@@ -7,11 +7,12 @@ add_subdirectory (resources)
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2.5 COMPONENTS graphics window main REQUIRED)
 
-add_executable (core_showcase "core_showcase.cc" ${UI_SRC})
+add_executable (core_showcase "core_showcase.cc" ${UI_SRC} "app/core_game_loop.h" "app/core_game_loop.cc")
 target_compile_features(core_showcase PUBLIC cxx_std_20)
 target_link_libraries(core_showcase 
     PRIVATE
         Platformer::core
+        winmm.lib
         sfml-graphics
         sfml-window
         sfml-main

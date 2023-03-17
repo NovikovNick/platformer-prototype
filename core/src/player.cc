@@ -8,7 +8,7 @@ Player::Player()
       prev_input(0),
       on_ground(false),
       on_damage(false),
-      look_at_left(false),
+      left_direction(false),
       obj(GameObject(64, 128,
                      {{FIX(-0.5), FIX(0.5)},
                       {FIX(0.5), FIX(0.5)},

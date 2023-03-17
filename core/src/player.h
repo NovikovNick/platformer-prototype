@@ -20,7 +20,7 @@ class Player {
   PlayerState state;
   uint64_t state_frame;
   int prev_input;
-  bool on_ground, on_damage, look_at_left;
+  bool on_ground, on_damage, left_direction;
   Player();
   void updateState(const PlayerState state);
   bool is(const PlayerState state) const;

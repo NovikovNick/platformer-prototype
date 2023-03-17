@@ -58,11 +58,11 @@ class death;
 
 const auto onGround = [](const Player& ctx) { return ctx.on_ground; };
 const auto inAir = [](const Player& ctx) { return !ctx.on_ground; };
-struct FrameLessOrEqualThen {
+struct FrameLessOrEq {
   int frame;
   auto operator()(const Player& ctx) const { return ctx.state_frame <= frame; }
 };
-struct FrameGreatThen {
+struct FrameGreat {
   int frame;
   auto operator()(const Player& ctx) const { return ctx.state_frame > frame; }
 };
@@ -76,7 +76,7 @@ auto attack_s = boost::sml::state<attack_on_ground>;
 auto death_s = boost::sml::state<death>;
 
 auto input_up = boost::sml::event<InputUp>;
-auto input_none = boost::sml::event<InputNone>;
+auto none = boost::sml::event<InputNone>;
 auto input_left = boost::sml::event<InputLeft>;
 auto input_right = boost::sml::event<InputRight>;
 auto input_attack = boost::sml::event<InputLKM>;
@@ -89,34 +89,33 @@ struct transition_table {
      * Transition DSL: src_state + event [ guard ] / action = dst_state
      */
     return make_transition_table(
-        *idle_s + input_none[onGround] = idle_s,
+        *idle_s + none[onGround] = idle_s,
         idle_s + input_left[onGround] = run_s,
         idle_s + input_right[onGround] = run_s,
         idle_s + input_up[onGround] = jump_s,
         idle_s + input_attack[onGround] = attack_s,
-        idle_s + input_none[inAir] = falling_s,
+        idle_s + none[inAir] = falling_s,
 
-        landing_s + input_none[onGround && FrameLessOrEqualThen{2}] = idle_s,
-        landing_s + input_none[onGround && FrameGreatThen{2}] = idle_s,
-        landing_s + input_none[inAir] = falling_s,
+        landing_s + none[onGround && FrameLessOrEq{2}] = idle_s,
+        landing_s + none[onGround && FrameGreat{2}] = idle_s,
+        landing_s + none[inAir] = falling_s,
 
-        attack_s + input_none[onGround && FrameLessOrEqualThen{kAttack - 1}] =
-            attack_s,
-        attack_s + input_none[onGround && FrameGreatThen{kAttack - 1}] = idle_s,
-        attack_s + input_none[inAir] = falling_s,
+        attack_s + none[onGround && FrameLessOrEq{kAttack - 1}] = attack_s,
+        attack_s + none[onGround && FrameGreat{kAttack - 1}] = idle_s,
+        attack_s + none[inAir] = falling_s,
 
-        run_s + input_none[onGround] = idle_s,
+        run_s + none[onGround] = idle_s,
         run_s + input_left[onGround] = run_s,
         run_s + input_right[onGround] = run_s,
         run_s + input_up[onGround] = jump_s,
         run_s + input_attack[onGround] = attack_s,
-        run_s + input_none[inAir] = falling_s,
+        run_s + none[inAir] = falling_s,
 
-        jump_s + input_none[inAir && FrameLessOrEqualThen{kJump - 1}] = jump_s,
-        jump_s + input_none[inAir && FrameGreatThen{kJump - 1}] = falling_s,
-        jump_s + input_none[onGround] = landing_s,
+        jump_s + none[inAir && FrameLessOrEq{kJump - 1}] = jump_s,
+        jump_s + none[inAir && FrameGreat{kJump - 1}] = falling_s,
+        jump_s + none[onGround] = landing_s,
 
-        falling_s + input_none[onGround] = landing_s);
+        falling_s + none[onGround] = landing_s);
   }
 };
 
@@ -185,11 +184,11 @@ void GameState::update(const int p0_input, const int p1_input,
     fsm.process_event(InputNone{});
     if (input[kInputLeft]) {
       fsm.process_event(InputLeft{});
-      player.look_at_left = true;
+      player.left_direction = true;
     }
     if (input[kInputRight]) {
       fsm.process_event(InputRight{});
-      player.look_at_left = false;
+      player.left_direction = false;
     }
     if (input[kInputUp] && !prev_input[kInputUp]) fsm.process_event(InputUp{});
     if (input[kInputLKM] && !prev_input[kInputLKM])
@@ -205,7 +204,7 @@ void GameState::update(const int p0_input, const int p1_input,
       melee_attack[player_id].position.y() =
           player.obj.position.y() - player.obj.height_ / 2;
       melee_attack[player_id].width_ =
-          24 * player.state_frame * (player.look_at_left ? -1 : 1);
+          24 * player.state_frame * (player.left_direction ? -1 : 1);
       melee_attack[player_id].height_ = player.obj.height_;
     } else {
       melee_attack[player_id].width_ = 0;
