@@ -1,5 +1,7 @@
 #ifndef PLATFORMER_GAME_STATE_H
 #define PLATFORMER_GAME_STATE_H
+#include <locomotion_fsm.h>
+
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
 #include <future>
@@ -12,6 +14,7 @@ namespace platformer {
 
 class GameState {
   std::mutex mutex_;
+  PlayerLocomotionFSM fsms_;
 
  public:
   std::vector<Player> players_;

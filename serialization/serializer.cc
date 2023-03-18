@@ -39,41 +39,59 @@ static ser::PlayerState convert(const platformer::PlayerState& src) {
   switch (src) {
     case platformer::PlayerState::IDLE:
       return ser::PlayerState::IDLE;
-    case platformer::PlayerState::JUMP_DOWN:
-      return ser::PlayerState::JUMP_DOWN;
-    case platformer::PlayerState::JUMP_UP:
-      return ser::PlayerState::JUMP_UP;
     case platformer::PlayerState::RUN:
       return ser::PlayerState::RUN;
+    case platformer::PlayerState::JUMP:
+      return ser::PlayerState::JUMP;
+    case platformer::PlayerState::FALLING:
+      return ser::PlayerState::FALLING;
+    case platformer::PlayerState::LANDING:
+      return ser::PlayerState::LANDING;
+    case platformer::PlayerState::ATTACK_ON_GROUND:
+      return ser::PlayerState::ATTACK_ON_GROUND;
+    case platformer::PlayerState::DEATH:
+      return ser::PlayerState::DEATH;
   }
 }
 static platformer::PlayerState convert(const ser::PlayerState& src) {
   switch (src) {
     case ser::PlayerState::IDLE:
       return platformer::PlayerState::IDLE;
-    case ser::PlayerState::JUMP_DOWN:
-      return platformer::PlayerState::JUMP_DOWN;
-    case ser::PlayerState::JUMP_UP:
-      return platformer::PlayerState::JUMP_UP;
     case ser::PlayerState::RUN:
       return platformer::PlayerState::RUN;
+    case ser::PlayerState::JUMP:
+      return platformer::PlayerState::JUMP;
+    case ser::PlayerState::FALLING:
+      return platformer::PlayerState::FALLING;
+    case ser::PlayerState::LANDING:
+      return platformer::PlayerState::LANDING;
+    case ser::PlayerState::ATTACK_ON_GROUND:
+      return platformer::PlayerState::ATTACK_ON_GROUND;
+    case ser::PlayerState::DEATH:
+      return platformer::PlayerState::DEATH;
   }
 }
 
 static ser::Player convert(const platformer::Player& src) {
   ser::Player dst;
   *dst.mutable_obj() = convert(src.obj);
-  dst.set_state(convert(src.state_));
-  dst.set_frame(src.frame_);
-  dst.set_on_platform(src.on_platform_);
+  dst.set_state(convert(src.state));
+  dst.set_state_frame(src.state_frame);
+  dst.set_prev_input(src.prev_input);
+  dst.set_left_direction(src.left_direction);
+  dst.set_on_ground(src.on_ground);
+  dst.set_on_damage(src.on_damage);
   return dst;
 }
 static platformer::Player convert(const ser::Player& src) {
   platformer::Player dst;
   dst.obj = convert(src.obj());
-  dst.state_ = convert(src.state());
-  dst.frame_ = src.frame();
-  dst.on_platform_ = src.on_platform();
+  dst.state = convert(src.state());
+  dst.state_frame  = src.state_frame();
+  dst.prev_input = src.prev_input();
+  dst.left_direction = src.left_direction();
+  dst.on_ground = src.on_ground();
+  dst.on_damage = src.on_damage();
   return dst;
 }
 

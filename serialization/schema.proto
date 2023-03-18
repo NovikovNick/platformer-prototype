@@ -16,21 +16,28 @@ message GameObject {
 }
 
 enum PlayerState { 
-    IDLE = 0;
-    RUN = 1;
-    JUMP_UP = 2;
-    JUMP_DOWN = 3;
+  IDLE = 0;
+  RUN = 1;
+  JUMP = 2;
+  FALLING = 3;
+  LANDING = 4;
+  ATTACK_ON_GROUND = 5;
+  DEATH = 6;
 }
 
 message Player{
   GameObject obj  = 1;
   PlayerState state = 2;
-  int32 frame = 3;
-  bool on_platform = 4;
+  int32 state_frame = 3;
+  int32 prev_input = 4;
+  bool on_ground = 5;
+  bool on_damage = 6;
+  bool left_direction = 7;
 }
 
 message GameState{
     int32 frame = 1;
     repeated Player players = 2;
     repeated GameObject platforms = 3;
+    repeated GameObject melee_attacks = 4;
 }

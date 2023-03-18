@@ -33,7 +33,7 @@ InputArgs validateAndParseInput(int argc, char* argv[]) {
     auto local_str = std::string(argv[1]);
     auto local_port_str = std::string(argv[2]);
     auto remode_addr_str = std::string(argv[3]);
-    
+
     InputArgs res;
     res.local = local_str == "local";
     res.local_port = std::stoi(local_port_str);
@@ -83,30 +83,20 @@ int main(int argc, char* argv[]) {
 
   platformer::Info info(font, kFstColor);
   const int fps_index = info.addFormat("FPS: {:.0f}\n");
-  const int dx_index = info.addFormat("Delta(sec): {:.6f}\n");
-  const int tick_index = info.addFormat("Tick#{:4d}({:2d})- {:4.2f}%\n");
-  const int mouse_index = info.addFormat("Mouse[{:4d},{:4d}]\n");
-  const int intersection_index = info.addFormat("Intersect[{:4d},{:4d}]\n");
-
-  platformer::VectorProductVisualizer visualizer(font, kBGColor, kSndColor,
-                                                 kTrdColor);
-  visualizer.update({0, -128}, {64, 0}, {0, 0});
+  const int tick_index = info.addFormat("Tick#{:4d}\n");
 
   platformer::ScalableGrid grid(32);
 
   auto t0 = steady_clock::now();
   auto t1 = steady_clock::now();
   float elapsed = 0, dx = 0;
-  std::bitset<4> input_bitset(0);
+  std::bitset<5> input_bitset(0);
 
   auto gs = std::make_shared<platformer::GameState>();
   auto tick = std::make_shared<std::atomic<int>>(0);
-  auto tick_rate = std::make_shared<std::atomic<int>>(60);
-  auto tick_ratio = std::make_shared<std::atomic<float>>(0);
   auto p0_input = std::make_shared<std::atomic<int>>(0);
   auto p1_input = std::make_shared<std::atomic<int>>(0);
-  platformer::NetGameLoop game_loop(args, gs, tick, tick_rate, tick_ratio,
-                                    p0_input, p1_input);
+  platformer::NetGameLoop game_loop(args, gs, tick, p0_input, p1_input);
   std::thread(game_loop).detach();
 
   int prev_tick = tick->load();
@@ -114,7 +104,9 @@ int main(int argc, char* argv[]) {
 
   platformer::PlayerShape p0{kTrdColor, kSndColor, gs->getPlayer(0)};
   platformer::PlayerShape p1{kTrdColor, kSndColor, gs->getPlayer(1)};
-  float t = tick_ratio->load();  // requires for lerp
+
+  std::vector<sf::VertexArray> platform_shapes(gs->getPlatforms().size());
+  std::vector<sf::VertexArray> melee_shapes(2);
 
   while (window.isOpen()) {
     t1 = steady_clock::now();
@@ -122,8 +114,7 @@ int main(int argc, char* argv[]) {
     elapsed += dx;
     t0 = t1;
 
-    // info.update(fps_index, 1 / dx);
-    // info.update(dx_index, dx);
+    info.update(fps_index, 1 / dx);
 
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -166,24 +157,21 @@ int main(int argc, char* argv[]) {
         case sf::Event::MouseButtonPressed:
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
-            visualizer.update({x, y}, true);
-            platformer::debug("FIX({}), FIX({})\n", x - x % 32, y - y % 32);
+            input_bitset[kInputLKM] = true;
           }
           break;
         case sf::Event::MouseButtonReleased:
           if (event.mouseButton.button == sf::Mouse::Left) {
             auto [_, x, y] = event.mouseButton;
-            visualizer.update({x, y}, false);
+            input_bitset[kInputLKM] = false;
           }
           break;
         case sf::Event::MouseMoved: {
           auto [x, y] = event.mouseMove;
-          visualizer.update({x, y});
           break;
         }
         case sf::Event::MouseWheelMoved: {
           auto [delta, x, y] = event.mouseWheel;
-          tick_rate->fetch_add(delta);
           break;
         }
       }
@@ -195,39 +183,58 @@ int main(int argc, char* argv[]) {
       p1_input->store(input_bitset.to_ulong());
     }
 
+    platformer::GameState gs_projection = gs->getStateProjection();
     curr_tick = tick->load();
-    t = tick_ratio->load();
     if (prev_tick != curr_tick) {
       prev_tick = curr_tick;
-      auto lock = gs->lock();
-      p0.update(gs->players_[0].obj);
-      p1.update(gs->players_[1].obj);
-    }
-    p0.update(t);
-    p1.update(t);
-    // info.update(tick_index, curr_tick, tick_rate->load(), t);
+      p0.update(gs->getPlayer(0));
+      p1.update(gs->getPlayer(1));
+      p0.update(gs_projection.players_[0].on_damage ? kFstColor : kTrdColor);
+      p1.update(gs_projection.players_[1].on_damage ? kFstColor : kTrdColor);
+      p0.update(1);
+      p1.update(1);
 
-    std::vector<sf::VertexArray> platform_shapes;
-    {
-      auto lock = gs->lock();
-      for (const auto& platform : gs->getPlatforms()) {
-        sf::VertexArray platform_shape(sf::Quads, 4);
-        for (int i = 0; i < platform.size(); ++i) {
-          platform_shape[i].position.x = static_cast<float>(platform[i].x());
-          platform_shape[i].position.y = static_cast<float>(platform[i].y());
-          platform_shape[i].color = kFstColor;
-        }
-        platform_shapes.push_back(platform_shape);
+      {  // info + console
+        auto& p = gs_projection.players_[0];
+        auto pos_x = static_cast<float>(p.obj.position.x());
+        auto pos_y = static_cast<float>(p.obj.position.y());
+        auto vel_x = static_cast<float>(p.obj.velocity.x());
+        auto vel_y = static_cast<float>(p.obj.velocity.y());
+
+        info.update(tick_index, curr_tick);
       }
+    } else {
+      p0.update(1);
+      p1.update(1);
+    }
+
+    for (int j = 0; const auto& platform : gs_projection.platforms_) {
+      sf::VertexArray platform_shape(sf::Quads, 4);
+      for (int i = 0; i < platform.size(); ++i) {
+        platform_shape[i].position.x = static_cast<float>(platform[i].x());
+        platform_shape[i].position.y = static_cast<float>(platform[i].y());
+        platform_shape[i].color = kFstColor;
+      }
+      platform_shapes[j++] = platform_shape;
+    }
+
+    for (int j = 0; const auto& melee_atack : gs_projection.melee_attack) {
+      sf::VertexArray platform_shape(sf::Quads, 4);
+      for (int i = 0; i < melee_atack.size(); ++i) {
+        platform_shape[i].position.x = static_cast<float>(melee_atack[i].x());
+        platform_shape[i].position.y = static_cast<float>(melee_atack[i].y());
+        platform_shape[i].color = kSndColor;
+      }
+      melee_shapes[j++] = platform_shape;
     }
 
     window.clear(kBGColor);
     window.draw(grid);
-    window.draw(visualizer);
     window.draw(info);
     for (const auto& it : platform_shapes) window.draw(it);
     window.draw(p0);
     window.draw(p1);
+    for (const auto& it : melee_shapes) window.draw(it);
     window.display();
   }
   return 0;

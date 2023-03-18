@@ -15,7 +15,6 @@ target_link_libraries(core
 	PUBLIC 
 		fpm::fpm
 		Eigen3::Eigen
-	PRIVATE
 		boost_ext::sml)
 target_include_directories(core 
 	PUBLIC 

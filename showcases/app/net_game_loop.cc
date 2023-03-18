@@ -145,7 +145,6 @@ bool __cdecl vw_save_game_state_callback(unsigned char **buffer, int *len,
   bool res = platformer::Serializer::serialize(game_state, buffer, len);
   if (!res) return false;
   *checksum = fletcher32_checksum((short *)*buffer, *len / 2);
-  platformer::debug("serialized\n");
   return true;
 }
 
@@ -252,14 +251,10 @@ using frame = duration<uint64_t, std::ratio<1, 60>>;
 
 NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
                          std::shared_ptr<std::atomic<int>> tick,
-                         std::shared_ptr<std::atomic<int>> tick_rate,
-                         std::shared_ptr<std::atomic<float>> tick_ratio,
                          std::shared_ptr<std::atomic<int>> p0_input,
                          std::shared_ptr<std::atomic<int>> p1_input)
-    : frame_(0),
+    : frame_(0 - 1),
       tick_(tick),
-      tick_rate_(tick_rate),
-      tick_ratio_(tick_ratio),
       p0_input_(p0_input),
       p1_input_(p1_input),
       running_(false) {
@@ -330,42 +325,54 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
 NetGameLoop::~NetGameLoop() { WSACleanup(); };
 
 void NetGameLoop::operator()() {
+  if (timeBeginPeriod(1) == TIMERR_NOERROR) {
+    debug("Minimum resolution for periodic timers has been updated to 1ms\n");
+  } else {
+    debug(
+        "Unable to set minimum resolution for periodic timers in windows! App "
+        "will work in busy loop.\n");
+  }
+
   running_ = true;
-  auto t0 = clock::now();
-  auto t1 = clock::now();
-  auto t2 = clock::now();
-  float dx = 0;
-  float micro = 0;
+  auto started_time = clock::now();
+  auto current_time = clock::now();
+  float frame_time = duration_cast<microseconds>(frame(1)).count();
+  int update_time = 0;
+  int sleep_time = 0;
   int frame_per_tick, tick_rate;
-  int input;
+
+  microseconds running_time;
+  frame frames;
+  uint64_t frame_startup_offset;
 
   GGPOErrorCode result = GGPO_OK;
   int disconnect_flags;
   int inputs[2] = {0};
+  int input;
 
   while (running_) {
-    result = ggpo_idle(ggpo, 0);
+    running_time = duration_cast<microseconds>(current_time - started_time);
+    frames = duration_cast<frame>(running_time);
+    frame_startup_offset =
+        running_time.count() - duration_cast<microseconds>(frames).count();
 
-    t1 = clock::now();
-    auto next_frame = duration_cast<frame>(t1 - t0).count();
-    micro = duration_cast<microseconds>(t1 - t2).count();
-    tick_rate = std::clamp(tick_rate_->load(), 1, 60);
-    frame_per_tick = 60 / tick_rate;
+    if (frame_ + 1 != frames.count())
+      debug("Frame mismatch {} => {}!\n", frame_, frames.count());
 
-    // the ratio between the elapsed microseconds and the number of microseconds
-    // in 1 tick
-    tick_ratio_->store(micro / (1e6 / tick_rate));
+    if (frame_ != frames.count()) {
+      frame_ = frames.count();
+      tick_->store(frame_);
 
-    if (frame_ != next_frame) {
-      frame_ = next_frame;
+      {  // update  
+        result = ggpo_idle(ggpo, sleep_time);
 
-      if (next_frame % frame_per_tick == 0) {
         if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
           input = local_player == 0 ? p0_input_->load() : p1_input_->load();
           result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input,
                                         sizeof(input));
         }
-        print(frame_, result);
+        //print(frame_, result);
+        
         // synchronize these inputs with ggpo.  If we have enough input to
         // proceed ggpo will modify the input list with the correct inputs to
         // use and return 1.
@@ -373,7 +380,6 @@ void NetGameLoop::operator()() {
           result = ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * 2,
                                           &disconnect_flags);
           if (GGPO_SUCCEEDED(result)) {
-            
             // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
             // the game by 1 frame using those inputs.
             game_state->update(inputs[0], inputs[1], 1);
@@ -389,11 +395,21 @@ void NetGameLoop::operator()() {
             ggpo_advance_frame(ggpo);
           }
         }
-        tick_->fetch_add(1);
-        t2 = t1;
       }
+
+      update_time =
+          duration_cast<microseconds>(clock::now() - current_time).count();
+      sleep_time =
+          std::ceil((frame_time - update_time - frame_startup_offset) / 1000);
+
+      if (sleep_time > 0) Sleep(sleep_time);
+      current_time = clock::now();
+    } else {
+      Sleep(1);
+      current_time = clock::now();
     }
   }
+  timeEndPeriod(1);
 };
 
 };  // namespace platformer
