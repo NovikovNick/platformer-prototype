@@ -127,7 +127,6 @@ int main() {
               break;
             case sf::Keyboard::S:
               input_bitset[kInputDown] = true;
-              break;
           }
           break;
         case sf::Event::KeyReleased:
@@ -143,7 +142,6 @@ int main() {
               break;
             case sf::Keyboard::S:
               input_bitset[kInputDown] = false;
-              break;
           }
           break;
         case sf::Event::MouseButtonPressed:
@@ -168,10 +166,8 @@ int main() {
           gs->getPlatforms()[1].position = {FIX(x - x % 32), FIX(y - y % 32)};
           break;
         }
-        case sf::Event::MouseWheelMoved: {
+        case sf::Event::MouseWheelMoved:
           auto [delta, x, y] = event.mouseWheel;
-          break;
-        }
       }
     }
 

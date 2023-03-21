@@ -5,25 +5,26 @@
 
 namespace {
 
-static ser::Vector2 convert(const VECTOR_2& src) {
+static ser::Vector2 convert(const VECTOR_2& src, const bool fixed) {
   ser::Vector2 dst;
-  dst.set_x(src.x().raw_value());
-  dst.set_y(src.y().raw_value());
+  dst.set_x(fixed ? src.x().raw_value() : src.x().raw_value() >> 16);
+  dst.set_y(fixed ? src.y().raw_value() : src.y().raw_value() >> 16);
   return dst;
 }
 static VECTOR_2 convert(const ser::Vector2& src) {
   return VECTOR_2{FIX::from_raw_value(src.x()), FIX::from_raw_value(src.y())};
 }
 
-static ser::GameObject convert(const platformer::GameObject& src) {
+static ser::GameObject convert(const platformer::GameObject& src,
+                               const bool fixed) {
   ser::GameObject dst;
 
-  for (const auto& point : src.mesh) dst.mutable_mesh()->Add(convert(point));
+  for (const auto& point : src.mesh) dst.mutable_mesh()->Add(convert(point, fixed));
   dst.set_width(src.width_);
   dst.set_height(src.height_);
 
-  *dst.mutable_position() = convert(src.position);
-  *dst.mutable_velocity() = convert(src.velocity);
+  *dst.mutable_position() = convert(src.position, fixed);
+  *dst.mutable_velocity() = convert(src.velocity, fixed);
   return dst;
 }
 static platformer::GameObject convert(const ser::GameObject& src) {
@@ -72,9 +73,9 @@ static platformer::PlayerState convert(const ser::PlayerState& src) {
   }
 }
 
-static ser::Player convert(const platformer::Player& src) {
+static ser::Player convert(const platformer::Player& src, const bool fixed) {
   ser::Player dst;
-  *dst.mutable_obj() = convert(src.obj);
+  *dst.mutable_obj() = convert(src.obj, fixed);
   dst.set_state(convert(src.state));
   dst.set_state_frame(src.state_frame);
   dst.set_prev_input(src.prev_input);
@@ -87,7 +88,7 @@ static platformer::Player convert(const ser::Player& src) {
   platformer::Player dst;
   dst.obj = convert(src.obj());
   dst.state = convert(src.state());
-  dst.state_frame  = src.state_frame();
+  dst.state_frame = src.state_frame();
   dst.prev_input = src.prev_input();
   dst.left_direction = src.left_direction();
   dst.on_ground = src.on_ground();
@@ -95,14 +96,15 @@ static platformer::Player convert(const ser::Player& src) {
   return dst;
 }
 
-static ser::GameState convert(const platformer::GameState& src) {
+static ser::GameState convert(const platformer::GameState& src,
+                              const bool fixed) {
   ser::GameState dst;
 
   for (const auto& player : src.players_)
-    dst.mutable_players()->Add(convert(player));
+    dst.mutable_players()->Add(convert(player, fixed));
 
   for (const auto& platform : src.platforms_)
-    dst.mutable_platforms()->Add(convert(platform));
+    dst.mutable_platforms()->Add(convert(platform, fixed));
 
   return dst;
 }
@@ -113,7 +115,7 @@ namespace platformer {
 bool Serializer::serialize(std::shared_ptr<GameState> gs,
                            unsigned char** buffer, int* len) {
   auto lock = gs->lock();
-  auto serialized = convert(*gs.get());
+  auto serialized = convert(*gs.get(), true);
   *len = serialized.ByteSize();
   *buffer = new unsigned char[*len];
   return serialized.SerializeToArray(*buffer, serialized.ByteSize());
@@ -137,4 +139,15 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
   return res;
 }
 
+ser::GameState Serializer::deserialize(unsigned char* buffer, int len) {
+  ser::GameState dst;
+  dst.ParseFromArray(buffer, len);
+  return dst;
+}
+
+int Serializer::serialize(const GameState& gs, unsigned char* buffer) {
+  auto serialized = convert(gs, false);
+  serialized.SerializeToArray(buffer, serialized.ByteSize());
+  return serialized.ByteSize();
+}
 };  // namespace platformer

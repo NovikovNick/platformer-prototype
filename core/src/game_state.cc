@@ -44,8 +44,8 @@ GameState::GameState()
     : players_(std::vector<Player>{}),
       melee_attack(std::vector<GameObject>{}),
       platforms_(std::vector<GameObject>{}) {
-  players_.emplace_back().obj.position = {FIX(192), FIX(768)};
-  players_.emplace_back().obj.position = {FIX(96), FIX(768)};
+  players_.emplace_back().obj.position = {FIX(192), FIX(704)};
+  players_.emplace_back().obj.position = {FIX(96), FIX(704)};
 
   std::vector<VECTOR_2> mesh{
       {kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}};
@@ -181,6 +181,13 @@ std::vector<GameObject>& GameState::getPlatforms() {
 std::unique_lock<std::mutex> GameState::lock() {
   return std::unique_lock{mutex_};
 }
+
+GameState& GameState::operator=(const GameState& src) {
+  players_ = src.players_;
+  platforms_ = src.platforms_;
+  melee_attack = src.melee_attack;
+  return *this;
+};
 
 bool GameState::checkPlatform(const int player_id) {
   auto& player = players_[player_id].obj;

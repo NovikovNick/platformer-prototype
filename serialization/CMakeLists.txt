@@ -5,13 +5,13 @@ add_library (Platformer::serialization ALIAS serialization)
 
 target_sources(serialization 
 	INTERFACE 
-		"serializer.h"
+		"serializer.h" 
+		${PROTO_HDR}
 	PRIVATE
 		"serializer.cc"
-		${PROTO_SRC} 
-		${PROTO_HDR})
+		${PROTO_SRC})
 target_link_libraries(serialization 
-	PRIVATE 
+	PUBLIC 
 		Platformer::core
 		protobuf::libprotoc 
 		protobuf::libprotobuf 
@@ -21,7 +21,6 @@ target_link_libraries(serialization
 target_include_directories(serialization 
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-	PRIVATE
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 		$<INSTALL_INTERFACE:./>
 )

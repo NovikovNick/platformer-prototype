@@ -11,7 +11,7 @@ namespace platformer {
 
 using namespace std::chrono;
 using clock = high_resolution_clock;
-using frame = duration<uint64_t, std::ratio<1, 6>>;
+using frame = duration<uint64_t, std::ratio<1, 60>>;
 
 CoreGameLoop::CoreGameLoop(std::shared_ptr<GameState> gs,
                            std::shared_ptr<std::atomic<int>> tick,

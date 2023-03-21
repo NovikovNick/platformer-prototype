@@ -10,10 +10,10 @@ Player::Player()
       on_damage(false),
       left_direction(false),
       obj(GameObject(64, 128,
-                     {{FIX(-0.5), FIX(0.5)},
-                      {FIX(0.5), FIX(0.5)},
-                      {FIX(0.5), FIX(-0.5)},
-                      {FIX(-0.5), FIX(-0.5)}})){};
+                     {{FIX(0), FIX(1)},
+                      {FIX(1), FIX(1)},
+                      {FIX(1), FIX(0)},
+                      {FIX(0), FIX(0)}})){};
 
 void Player::updateState(const PlayerState new_state) {
   if (state != new_state) {

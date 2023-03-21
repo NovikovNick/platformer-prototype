@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
-#include <future>
+#include <mutex>
 #include <vector>
 
 #include "game_object.h"
@@ -29,6 +29,8 @@ class GameState {
 
   GameState getStateProjection();
   std::unique_lock<std::mutex> lock();
+
+  GameState& operator=(const GameState&);
 
  private:
   bool checkPlatform(const int player_id);

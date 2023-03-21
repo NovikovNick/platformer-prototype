@@ -14,11 +14,14 @@ void PlayerShape::update(const platformer::GameObject curr) {
   prev_ = curr_;
   curr_ = curr;
 }
-void PlayerShape::update(const sf::Color main_color){
+void PlayerShape::update(const sf::Color main_color) {
   for (int i = 0; i < 4; ++i) player_shape_[i].color = main_color;
 };
 
 void PlayerShape::update(const float delta) {
+  int offset_x = curr_.width_ >> 1;
+  int offset_y = curr_.height_ >> 1;
+
   for (int i = 0; i < 4; ++i) {
     auto prev_x = static_cast<float>(prev_[i].x());
     auto prev_y = static_cast<float>(prev_[i].y());
@@ -47,10 +50,12 @@ void PlayerShape::update(const float delta) {
     auto curr_vel_y = static_cast<float>(curr_vel.y());
 
     velocity_vector_.update(
-        {std::lerp(prev_pos_x, curr_pos_x, delta),
-         std::lerp(prev_pos_y, curr_pos_y, delta)},
-        {std::lerp(prev_pos_x + prev_vel_x, curr_pos_x + curr_vel_x, delta),
-         std::lerp(prev_pos_y + prev_vel_y, curr_pos_y + curr_vel_y, delta)});
+        {std::lerp(prev_pos_x, curr_pos_x, delta) + offset_x,
+         std::lerp(prev_pos_y, curr_pos_y, delta) + offset_y},
+        {std::lerp(prev_pos_x + prev_vel_x, curr_pos_x + curr_vel_x, delta) +
+             offset_x,
+         std::lerp(prev_pos_y + prev_vel_y, curr_pos_y + curr_vel_y, delta) +
+             offset_y});
   }
 };
 
