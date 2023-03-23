@@ -1,6 +1,7 @@
 #include "../api.h"
 
 #include <serializer.h>
+#include <schema.pb.h>
 
 #include <bitset>
 #include <iostream>

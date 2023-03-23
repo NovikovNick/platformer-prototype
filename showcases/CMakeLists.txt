@@ -23,7 +23,8 @@ target_compile_features(ggpo_showcase PUBLIC cxx_std_20)
 target_link_libraries(ggpo_showcase 
     PRIVATE
         Platformer::core
-        Platformer::serialization
+        Platformer::model
+        Platformer::converter
         sfml-graphics
         sfml-window
         sfml-main
@@ -52,10 +53,16 @@ target_compile_features(frontend_sync_showcase PUBLIC cxx_std_20)
 target_link_libraries(frontend_sync_showcase 
     PRIVATE
         Platformer::core
-        Platformer::serialization
+        Platformer::model
+        Platformer::converter
         Platformer::frontend_sync
         winmm.lib
         sfml-graphics
         sfml-window
         sfml-main
+)
+add_custom_command(TARGET frontend_sync_showcase POST_BUILD
+	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
+    ${CMAKE_CURRENT_BINARY_DIR}/../frontend/frontend_sync.dll
+    ${CMAKE_CURRENT_BINARY_DIR}
 )

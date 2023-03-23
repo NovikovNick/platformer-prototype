@@ -9,8 +9,11 @@ target_sources(frontend_sync
 target_link_libraries(frontend_sync 
     PRIVATE
         Platformer::core
-        Platformer::serialization)
+        Platformer::model
+        Platformer::converter
+)
 target_include_directories(frontend_sync 
-	PUBLIC 
+	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+	PRIVATE 
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/.>)
