@@ -94,11 +94,14 @@ Scene::Scene()
 
 void Scene::update(const ser::GameState& gs) {
   if (shapes_.empty()) {
-    for (const auto& player : gs.players()) {
-      auto& obj = player.obj();
-      shapes_.emplace_back(kTrdColor, obj.width(), obj.height(),
-                           obj.position().x(), obj.position().y());
-    }
+    for (const auto& player : gs.players())
+      shapes_.emplace_back(kTrdColor, player.obj().width(),
+                           player.obj().height(), player.obj().position().x(),
+                           player.obj().position().y());
+
+    for (const auto& attack : gs.melee_attacks())
+      shapes_.emplace_back(kSndColor, attack.width(), attack.height(),
+                           attack.position().x(), attack.position().y());
 
     for (const auto& platform : gs.platforms())
       shapes_.emplace_back(kFstColor, platform.width(), platform.height(),
@@ -109,6 +112,14 @@ void Scene::update(const ser::GameState& gs) {
     shapes_[player_id].update(gs.players()[player_id].obj().position().x(),
                               gs.players()[player_id].obj().position().y());
     shapes_[player_id].update(1);
+  }
+
+  for (int player_id = 0; player_id < gs.melee_attacks_size(); ++player_id) {
+    shapes_[player_id + 2].update(gs.melee_attacks()[player_id].position().x(),
+                                  gs.melee_attacks()[player_id].position().y());
+    shapes_[player_id + 2].updateSize(gs.melee_attacks()[player_id].width(),
+                                      gs.melee_attacks()[player_id].height());
+    shapes_[player_id + 2].update(1);
   }
 }
 

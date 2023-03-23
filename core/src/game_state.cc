@@ -109,9 +109,10 @@ void GameState::update(const int p0_input, const int p1_input,
     // 2. update input
     if (player.is(PlayerState::FALLING)) vel_y += FIX{kAccelerationGravity};
     if (player.is(PlayerState::ATTACK_ON_GROUND)) {
-      melee_attack[player_id].position.x() = player.obj.position.x();
-      melee_attack[player_id].position.y() =
-          player.obj.position.y() - player.obj.height_ / 2;
+      melee_attack[player_id].position.x() =
+          player.obj.position.x() + player.obj.width_ / 2;
+      melee_attack[player_id].position.y() = player.obj.position.y();
+
       melee_attack[player_id].width_ =
           24 * player.state_frame * (player.left_direction ? -1 : 1);
       melee_attack[player_id].height_ = player.obj.height_;

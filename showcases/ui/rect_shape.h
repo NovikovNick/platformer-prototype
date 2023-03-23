@@ -15,6 +15,7 @@ class RectShape : public sf::Drawable {
   RectShape(const sf::Color color, const int width, const int height,
             const float x, const float y);
   void update(const float x, const float y);
+  void updateSize(const int width, const int height);
   void update(const sf::Color color);
   void update(const float delta);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;

@@ -106,6 +106,9 @@ static ser::GameState convert(const platformer::GameState& src,
   for (const auto& platform : src.platforms_)
     dst.mutable_platforms()->Add(convert(platform, fixed));
 
+  for (const auto& attack : src.melee_attack)
+    dst.mutable_melee_attacks()->Add(convert(attack, fixed));
+
   return dst;
 }
 }  // namespace

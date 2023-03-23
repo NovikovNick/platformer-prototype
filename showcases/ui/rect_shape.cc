@@ -23,6 +23,11 @@ void RectShape::update(const float x, const float y) {
   curr_x = x;
   curr_y = y;
 }
+void RectShape::updateSize(const int new_width, const int new_height) {
+  width = new_width;
+  height = new_height;
+}
+
 void RectShape::update(const sf::Color color) {
   for (int i = 0; i < 4; ++i) shape_[i].color = color;
 };
