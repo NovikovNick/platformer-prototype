@@ -18,3 +18,5 @@ target_include_directories(converter
 	PRIVATE
 		$<INSTALL_INTERFACE:./>
 )
+set_property(TARGET converter PROPERTY
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

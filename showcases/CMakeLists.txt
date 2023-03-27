@@ -61,8 +61,5 @@ target_link_libraries(frontend_sync_showcase
         sfml-window
         sfml-main
 )
-add_custom_command(TARGET frontend_sync_showcase POST_BUILD
-	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
-    ${CMAKE_CURRENT_BINARY_DIR}/../frontend/frontend_sync.dll
-    ${CMAKE_CURRENT_BINARY_DIR}
-)
+set_property(TARGET frontend_sync_showcase PROPERTY
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

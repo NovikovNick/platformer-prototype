@@ -20,3 +20,5 @@ target_include_directories(core
 	PUBLIC 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src>)
+set_property(TARGET core PROPERTY
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
