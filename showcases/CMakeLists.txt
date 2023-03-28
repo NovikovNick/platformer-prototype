@@ -7,17 +7,6 @@ add_subdirectory (resources)
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2.5 COMPONENTS graphics window main REQUIRED)
 
-add_executable (core_showcase "core_showcase.cc" ${UI_SRC} "app/core_game_loop.h" "app/core_game_loop.cc")
-target_compile_features(core_showcase PUBLIC cxx_std_20)
-target_link_libraries(core_showcase 
-    PRIVATE
-        Platformer::core
-        winmm.lib
-        sfml-graphics
-        sfml-window
-        sfml-main
-)
-
 add_executable (ggpo_showcase "ggpo_showcase.cc" ${UI_SRC} ${APP_SRC})
 target_compile_features(ggpo_showcase PUBLIC cxx_std_20)
 target_link_libraries(ggpo_showcase 
@@ -42,15 +31,15 @@ add_custom_command(TARGET ggpo_showcase POST_BUILD
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_executable (frontend_sync_showcase "frontend_sync_showcase.cc"
+add_executable (sync_showcase "sync_showcase.cc"
 "ui/info.h"
 "ui/info.cc"
 "ui/rect_shape.h"
 "ui/rect_shape.cc"
 "ui/scalable_grid.h"
 "ui/scalable_grid.cc")
-target_compile_features(frontend_sync_showcase PUBLIC cxx_std_20)
-target_link_libraries(frontend_sync_showcase 
+target_compile_features(sync_showcase PUBLIC cxx_std_20)
+target_link_libraries(sync_showcase 
     PRIVATE
         Platformer::core
         Platformer::model
@@ -61,5 +50,32 @@ target_link_libraries(frontend_sync_showcase
         sfml-window
         sfml-main
 )
-set_property(TARGET frontend_sync_showcase PROPERTY
-		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_target_properties(sync_showcase 
+    PROPERTIES
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        OUTPUT_NAME "${PROJECT_NAME}-sync-${CMAKE_PROJECT_VERSION}")
+
+
+add_executable (async_showcase "async_showcase.cc"
+"ui/info.h"
+"ui/info.cc"
+"ui/rect_shape.h"
+"ui/rect_shape.cc"
+"ui/scalable_grid.h"
+"ui/scalable_grid.cc")
+target_compile_features(async_showcase PUBLIC cxx_std_20)
+target_link_libraries(async_showcase 
+    PRIVATE
+        Platformer::core
+        Platformer::model
+        Platformer::converter
+        Platformer::frontend_async
+        winmm.lib
+        sfml-graphics
+        sfml-window
+        sfml-main
+)
+set_target_properties(async_showcase 
+    PROPERTIES
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        OUTPUT_NAME "${PROJECT_NAME}-async-${CMAKE_PROJECT_VERSION}")

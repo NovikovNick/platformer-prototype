@@ -16,13 +16,14 @@ using frame = duration<uint64_t, std::ratio<1, 60>>;
 CoreGameLoop::CoreGameLoop(std::shared_ptr<GameState> gs,
                            std::shared_ptr<std::atomic<int>> tick,
                            std::shared_ptr<std::atomic<int>> p0_input,
-                           std::shared_ptr<std::atomic<int>> p1_input)
+                           std::shared_ptr<std::atomic<int>> p1_input,
+                           std::shared_ptr<std::atomic<bool>> running)
     : gs_(gs),
       frame_(0 - 1),
       tick_(tick),
       p0_input_(p0_input),
       p1_input_(p1_input),
-      running_(false){};
+      running_(running){};
 
 void CoreGameLoop::operator()() {
   if (timeBeginPeriod(1) == TIMERR_NOERROR) {
@@ -33,7 +34,6 @@ void CoreGameLoop::operator()() {
         "will work in busy loop.\n");
   }
 
-  running_ = true;
   auto started_time = clock::now();
   auto current_time = clock::now();
   float frame_time = duration_cast<microseconds>(frame(1)).count();
@@ -45,7 +45,7 @@ void CoreGameLoop::operator()() {
   frame frames;
   uint64_t frame_startup_offset;
 
-  while (running_) {
+  while (running_->load()) {
     running_time = duration_cast<microseconds>(current_time - started_time);
     frames = duration_cast<frame>(running_time);
     frame_startup_offset =
