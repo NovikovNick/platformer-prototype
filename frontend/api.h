@@ -6,6 +6,9 @@ struct Input {
   bool leftPressed, rightPressed, upPressed, downPressed, leftMouseClicked;
 };
 
+EXPORT void RegisterPeer(int local_port, bool is_master,
+                         const char* remote_host, int remote_port);
+
 EXPORT void StartGame();
 
 EXPORT void StopGame();

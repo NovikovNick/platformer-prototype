@@ -19,6 +19,7 @@ target_include_directories(frontend_sync
 set_property(TARGET frontend_sync PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+
 add_library (frontend_async SHARED)
 add_library (Platformer::frontend_async ALIAS frontend_async)
 target_compile_features(frontend_async PUBLIC cxx_std_20)
@@ -39,4 +40,39 @@ target_include_directories(frontend_async
 	PUBLIC 
 		${CMAKE_CURRENT_SOURCE_DIR})
 set_property(TARGET frontend_async PROPERTY
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+
+add_library (frontend_ggpo SHARED)
+add_library (Platformer::frontend_ggpo ALIAS frontend_ggpo)
+target_compile_features(frontend_ggpo PUBLIC cxx_std_20)
+target_sources(frontend_ggpo 
+	INTERFACE 
+		"api.h"
+	PRIVATE
+		"ggpo/api_ggpo.cc"
+		"ggpo/input_args.h"
+		"ggpo/net_game_loop.h"
+		"ggpo/net_game_loop.cc"
+		"ggpo/nongamestate.h")
+target_link_libraries(frontend_ggpo 
+    PRIVATE
+        Platformer::core
+        Platformer::model
+        Platformer::converter
+        winmm.lib)
+target_include_directories(frontend_ggpo 
+	PUBLIC 
+		${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(frontend_ggpo 
+    LINK_PUBLIC 
+        ggpo::ggpo
+        ws2_32.lib
+        ${CMAKE_SOURCE_DIR}/external/ggpo/build/lib/x64/${CMAKE_BUILD_TYPE}/GGPO.lib)
+add_custom_command(TARGET frontend_ggpo POST_BUILD
+	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
+    ${CMAKE_SOURCE_DIR}/external/ggpo/build/bin/x64/${CMAKE_BUILD_TYPE}/GGPO.dll 
+    ${CMAKE_BINARY_DIR})
+set_property(TARGET frontend_ggpo PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

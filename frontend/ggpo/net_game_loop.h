@@ -9,15 +9,16 @@
 namespace platformer {
 
 class NetGameLoop {
-  bool running_;
   uint64_t frame_;
   std::shared_ptr<std::atomic<int>> tick_, p0_input_, p1_input_;
+  std::shared_ptr<std::atomic<bool>> running_;
 
  public:
   NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
               std::shared_ptr<std::atomic<int>> tick,
               std::shared_ptr<std::atomic<int>> p0_input,
-              std::shared_ptr<std::atomic<int>> p1_input);
+              std::shared_ptr<std::atomic<int>> p1_input,
+              std::shared_ptr<std::atomic<bool>> running);
   ~NetGameLoop();
   void operator()();
 };

@@ -1,5 +1,5 @@
-pushd out\build\x64-Debug\showcases
+pushd out\build\x64-Debug
 del *.log
-start ggpo_showcase.exe local 7000 127.0.0.1:7001 
-start ggpo_showcase.exe remot 7001 127.0.0.1:7000 
+start platformer-ggpo-0.0.2.exe local 7000 127.0.0.1:7001 
+start platformer-ggpo-0.0.2.exe remot 7001 127.0.0.1:7000 
 popd
