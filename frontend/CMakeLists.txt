@@ -60,19 +60,11 @@ target_link_libraries(frontend_ggpo
         Platformer::core
         Platformer::model
         Platformer::converter
-        winmm.lib)
+		ggpo::ggpo
+        winmm.lib
+		ws2_32.lib)
 target_include_directories(frontend_ggpo 
 	PUBLIC 
 		${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(frontend_ggpo 
-    LINK_PUBLIC 
-        ggpo::ggpo
-        ws2_32.lib
-        ${CMAKE_SOURCE_DIR}/external/ggpo/build/lib/x64/${CMAKE_BUILD_TYPE}/GGPO.lib)
-add_custom_command(TARGET frontend_ggpo POST_BUILD
-	COMMAND  ${CMAKE_COMMAND} -E copy_if_different 
-    ${CMAKE_SOURCE_DIR}/external/ggpo/build/bin/x64/${CMAKE_BUILD_TYPE}/GGPO.dll 
-    ${CMAKE_BINARY_DIR})
 set_property(TARGET frontend_ggpo PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

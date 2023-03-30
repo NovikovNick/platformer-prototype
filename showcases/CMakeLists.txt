@@ -1,5 +1,4 @@
-﻿file(GLOB UI_SRC "ui/*.h" "ui/*.cc")
-file(GLOB APP_SRC "app/*.h" "app/*.cc")
+﻿include(CMakeSources.cmake)
 
 add_subdirectory (resources)
 
@@ -8,13 +7,7 @@ set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2.5 COMPONENTS graphics window main REQUIRED)
 
 
-add_executable (sync_showcase "sync_showcase.cc"
-"ui/info.h"
-"ui/info.cc"
-"ui/rect_shape.h"
-"ui/rect_shape.cc"
-"ui/scalable_grid.h"
-"ui/scalable_grid.cc")
+add_executable (sync_showcase ${SYNC_SHOWCASE_SRC})
 target_compile_features(sync_showcase PUBLIC cxx_std_20)
 target_link_libraries(sync_showcase 
     PRIVATE
@@ -31,13 +24,7 @@ set_target_properties(sync_showcase
         OUTPUT_NAME "${PROJECT_NAME}-sync-${CMAKE_PROJECT_VERSION}")
 
 
-add_executable (async_showcase "async_showcase.cc"
-"ui/info.h"
-"ui/info.cc"
-"ui/rect_shape.h"
-"ui/rect_shape.cc"
-"ui/scalable_grid.h"
-"ui/scalable_grid.cc")
+add_executable (async_showcase ${ASYNC_SHOWCASE_SRC})
 target_compile_features(async_showcase PUBLIC cxx_std_20)
 target_link_libraries(async_showcase 
     PRIVATE
@@ -54,13 +41,7 @@ set_target_properties(async_showcase
         OUTPUT_NAME "${PROJECT_NAME}-async-${CMAKE_PROJECT_VERSION}")
 
 
-add_executable (ggpo_showcase "ggpo_showcase.cc"
-"ui/info.h"
-"ui/info.cc"
-"ui/rect_shape.h"
-"ui/rect_shape.cc"
-"ui/scalable_grid.h"
-"ui/scalable_grid.cc")
+add_executable (ggpo_showcase ${GGPO_SHOWCASE_SRC})
 target_compile_features(ggpo_showcase PUBLIC cxx_std_20)
 target_link_libraries(ggpo_showcase 
     PRIVATE
