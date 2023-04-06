@@ -1,5 +1,3 @@
-#include "../api.h"
-
 #include <schema.pb.h>
 #include <serializer.h>
 
@@ -8,6 +6,7 @@
 #include <iostream>
 #include <thread>
 
+#include "../api.h"
 #include "core_game_loop.h"
 #include "game_state.h"
 #include "util.h"
@@ -17,16 +16,36 @@ auto gs = std::make_shared<platformer::GameState>();
 auto tick = std::make_shared<std::atomic<int>>(0);
 auto p0_input = std::make_shared<std::atomic<int>>(0);
 auto p1_input = std::make_shared<std::atomic<int>>(0);
+
+std::mutex m;
 auto running = std::make_shared<std::atomic<bool>>(false);
+auto stopped = true;
+
 }  // namespace
 
-void StartGame() {
-  running->store(true);
-  std::thread(platformer::CoreGameLoop(gs, tick, p0_input, p1_input, running))
-      .detach();
+void RegisterPeer(int local_port, bool is_master, const char* remote_host,
+                  int remote_port) {
+  throw new std::runtime_error("RegisterPeer is unsupported for async version");
 };
 
-void StopGame() { running->store(false); };
+void StartGame() {
+  std::scoped_lock lock(m);
+  if (!running->load() && stopped) {
+    running->store(true);
+    stopped = false;
+    gs = std::make_shared<platformer::GameState>();
+    std::thread([] {
+      platformer::CoreGameLoop loop(gs, tick, p0_input, p1_input, running);
+      loop();
+      stopped = true;
+    }).detach();
+  }
+};
+
+void StopGame() {
+  std::scoped_lock lock(m);
+  running->store(false);
+};
 
 void Update(const Input input) {
   std::bitset<5> input_bitset;
@@ -42,3 +61,9 @@ void Update(const Input input) {
 int GetState(uint8_t* buf) {
   return platformer::Serializer::serialize(gs->getStateProjection(), buf);
 }
+
+GameStatus GetStatus() {
+  using namespace std::chrono_literals;
+  if (running->load()) return GameStatus::RUN;
+  return stopped ? GameStatus::STOPED : GameStatus::RUN;
+};

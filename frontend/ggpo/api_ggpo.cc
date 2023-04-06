@@ -12,14 +12,18 @@
 #include "util.h"
 
 namespace {
-platformer::NetGameLoop* gl;
+//platformer::NetGameLoop* gl;
 auto gs = std::make_shared<platformer::GameState>();
 
 auto tick = std::make_shared<std::atomic<int>>(0);
 auto p0_input = std::make_shared<std::atomic<int>>(0);
 auto p1_input = std::make_shared<std::atomic<int>>(0);
-auto running = std::make_shared<std::atomic<bool>>(false);
 InputArgs args;
+
+std::mutex m;
+auto running = std::make_shared<std::atomic<bool>>(false);
+auto stopped = true;
+auto status = std::make_shared<std::atomic<int>>(2);
 }  // namespace
 
 void RegisterPeer(int local_port, bool is_master, const char* remote_host,
@@ -34,14 +38,23 @@ void RegisterPeer(int local_port, bool is_master, const char* remote_host,
 };
 
 void StartGame() {
-  running->store(true);
-  gl = new platformer::NetGameLoop(args, gs, tick, p0_input, p1_input, running);
-  std::thread(*gl).detach();
+  std::scoped_lock lock(m);
+  if (!running->load() && stopped) {
+    running->store(true);
+    stopped = false;
+    gs = std::make_shared<platformer::GameState>();
+    std::thread([] {
+      platformer::NetGameLoop loop(args, gs, tick, p0_input, p1_input, running,
+                                   status);
+      loop();
+      stopped = true;
+    }).detach();
+  }
 };
 
 void StopGame() {
+  std::scoped_lock lock(m);
   running->store(false);
-  delete gl;
 };
 
 void Update(const Input input) {
@@ -61,3 +74,18 @@ void Update(const Input input) {
 int GetState(uint8_t* buf) {
   return platformer::Serializer::serialize(gs->getStateProjection(), buf);
 }
+
+GameStatus GetStatus() {
+  using namespace std::chrono_literals;
+  
+  switch (status->load()) {
+    case 0:
+      return GameStatus::RUN;
+    case 1:
+      return GameStatus::SYNC;
+    case 2:
+      return GameStatus::STOPED;
+      default :
+      throw std::runtime_error("No such status exist " + status->load());
+  }
+};

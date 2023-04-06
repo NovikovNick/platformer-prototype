@@ -1,21 +1,34 @@
 set(SHOWCASE_UI_HDR
 	"ui/info.h"
 	"ui/rect_shape.h"
-	"ui/scalable_grid.h")
+	"ui/scalable_grid.h"
+	"ui/scene.h")
 set(SHOWCASE_UI_SRC
-	"ui/scalable_grid.cc"
+	"ui/info.cc"
 	"ui/rect_shape.cc"
-	"ui/info.cc")
+	"ui/scalable_grid.cc"
+	"ui/scene.cc")
+set(SHOWCASE_SRC
+	"showcase_callbacks.h")
+set(SHOWCASE_UTIL
+	"util/util.h"
+	"util/util.cc")
 
 set(SYNC_SHOWCASE_SRC
 	"sync_showcase.cc"
+	${SHOWCASE_SRC}
+	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}
 	${SHOWCASE_UI_SRC})
 set(ASYNC_SHOWCASE_SRC
 	"async_showcase.cc"
+	${SHOWCASE_SRC}
+	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}
 	${SHOWCASE_UI_SRC})
 set(GGPO_SHOWCASE_SRC
 	"ggpo_showcase.cc"
+	${SHOWCASE_SRC}
+	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}
 	${SHOWCASE_UI_SRC})

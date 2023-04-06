@@ -256,12 +256,14 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
                          std::shared_ptr<std::atomic<int>> tick,
                          std::shared_ptr<std::atomic<int>> p0_input,
                          std::shared_ptr<std::atomic<int>> p1_input,
-                         std::shared_ptr<std::atomic<bool>> running)
+                         std::shared_ptr<std::atomic<bool>> running,
+                         std::shared_ptr<std::atomic<int>> status)
     : frame_(0 - 1),
       tick_(tick),
       p0_input_(p0_input),
       p1_input_(p1_input),
-      running_(running) {
+      running_(running),
+      status_ (status){
   game_state = gs;
 
   GGPOSessionCallbacks cb = {0};
@@ -323,6 +325,7 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
       ngs.players[i].connect_progress = 0;
     }
   }
+  status_->store(1);
 
   debug("Connecting to peers\n");
 }
@@ -386,6 +389,7 @@ void NetGameLoop::operator()() {
             // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
             // the game by 1 frame using those inputs.
             game_state->update(inputs[0], inputs[1], 1);
+            status_->store(0);
 
             // update the checksums to display in the top of the window.  this
             // helps to detect desyncs.
@@ -414,6 +418,7 @@ void NetGameLoop::operator()() {
   }
   ggpo_close_session(ggpo);
   timeEndPeriod(1);
+  status_->store(2);
 };
 
 };  // namespace platformer
