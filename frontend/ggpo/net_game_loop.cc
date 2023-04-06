@@ -80,7 +80,7 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       ngs.SetDisconnectTimeout(
           player_id, timeGetTime(),
           info->u.connection_interrupted.disconnect_timeout);
-      platformer::debug("NGS: {} interrupted. Not implemented\n", player_id);
+      platformer::debug("NGS: {} interrupted\n", player_id);
       break;
     case GGPO_EVENTCODE_CONNECTION_RESUMED:
       player_id = info->u.connection_interrupted.player;
@@ -118,6 +118,9 @@ bool __cdecl vw_advance_frame_callback(int) {
   ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * player_count,
                          &disconnect_flags);
   game_state->update(inputs[0], inputs[1], 1);
+  
+  // Notify ggpo that we've moved forward exactly 1 frame.
+  ggpo_advance_frame(ggpo);
   platformer::debug("vw_advance_frame_callback\n");
   return true;
 }
@@ -409,6 +412,7 @@ void NetGameLoop::operator()() {
       current_time = clock::now();
     }
   }
+  ggpo_close_session(ggpo);
   timeEndPeriod(1);
 };
 
