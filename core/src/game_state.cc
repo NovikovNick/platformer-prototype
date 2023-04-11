@@ -41,7 +41,8 @@ std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
 namespace platformer {
 
 GameState::GameState()
-    : players_(std::vector<Player>{}),
+    : frame(0),
+      players_(std::vector<Player>{}),
       melee_attack(std::vector<GameObject>{}),
       platforms_(std::vector<GameObject>{}) {
   players_.emplace_back().obj.position = {FIX(192), FIX(704)};
@@ -67,12 +68,14 @@ GameState::GameState(GameState& src) {
   players_ = src.players_;
   platforms_ = src.platforms_;
   melee_attack = src.melee_attack;
+  frame = src.frame;
 }
 
 void GameState::update(const int p0_input, const int p1_input,
                        const int frames) {
   int player_count = 2;
   std::scoped_lock lock{mutex_};
+  ++frame;
 
   for (int player_id = 0; player_id < 2; ++player_id) {
     auto& player = players_[player_id];
@@ -175,9 +178,7 @@ GameObject GameState::getPlayer(const int player_id) {
   return players_[player_id].obj;
 }
 
-std::vector<GameObject>& GameState::getPlatforms() {
-  return platforms_;
-}
+std::vector<GameObject>& GameState::getPlatforms() { return platforms_; }
 
 std::unique_lock<std::mutex> GameState::lock() {
   return std::unique_lock{mutex_};
@@ -187,6 +188,7 @@ GameState& GameState::operator=(const GameState& src) {
   players_ = src.players_;
   platforms_ = src.platforms_;
   melee_attack = src.melee_attack;
+  frame = src.frame;
   return *this;
 };
 

@@ -60,10 +60,10 @@ int main() {
 
   ser::GameState gs;
   Input input{false, false, false, false, false};
-  int tick = 0;
+
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
-    info.update(tick_index, ++tick);
+    info.update(tick_index, gs.frame());
 
     handleKeyboardInput(window, input, cb);
 

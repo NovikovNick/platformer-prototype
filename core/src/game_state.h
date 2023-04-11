@@ -17,6 +17,7 @@ class GameState {
   PlayerLocomotionFSM fsms_;
 
  public:
+  int frame;
   std::vector<Player> players_;
   std::vector<GameObject> platforms_;
   std::vector<GameObject> melee_attack;

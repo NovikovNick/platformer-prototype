@@ -99,6 +99,7 @@ static platformer::Player convert(const ser::Player& src) {
 static ser::GameState convert(const platformer::GameState& src,
                               const bool fixed) {
   ser::GameState dst;
+  dst.set_frame(src.frame);
 
   for (const auto& player : src.players_)
     dst.mutable_players()->Add(convert(player, fixed));
@@ -132,7 +133,7 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
   auto lock = gs->lock();
   gs->players_.clear();
   gs->platforms_.clear();
-
+  
   for (const auto& player : serialized.players())
     gs->players_.push_back(convert(player));
 
