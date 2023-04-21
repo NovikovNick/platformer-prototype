@@ -6,6 +6,8 @@ add_subdirectory (resources)
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2.5 COMPONENTS graphics window main REQUIRED)
 
+find_package(imgui CONFIG REQUIRED)
+find_package(ImGui-SFML CONFIG REQUIRED)
 
 add_executable (sync_showcase ${SYNC_SHOWCASE_SRC})
 target_compile_features(sync_showcase PUBLIC cxx_std_20)
@@ -51,7 +53,9 @@ target_link_libraries(ggpo_showcase
         Platformer::frontend_ggpo
         sfml-graphics
         sfml-window
-        sfml-main)
+        sfml-main
+        imgui::imgui
+        ImGui-SFML::ImGui-SFML)
 set_target_properties(ggpo_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"

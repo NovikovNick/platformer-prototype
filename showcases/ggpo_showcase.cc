@@ -1,10 +1,12 @@
 ﻿#include <api.h>
+#include <imgui-SFML.h>
+#include <imgui.h>
 #include <serializer.h>
 #include <util.h>
 
 #include <SFML/Graphics.hpp>
+#include <chrono>
 
-#include "chrono"
 #include "showcase_callbacks.h"
 #include "ui/info.h"
 #include "ui/scene.h"
@@ -28,8 +30,9 @@ int main(int argc, char* argv[]) {
   const static sf::Color kSndColor(255, 17, 17);
   const static sf::Color kTrdColor(255, 255, 255);
 
-  auto window = openWindow("Async showcase");
+  auto window = openWindow("Full showcase");
   window.setFramerateLimit(60);
+  ImGui::SFML::Init(window);
 
   // 1. allocate memory
   uint8_t buf[512];
@@ -41,7 +44,7 @@ int main(int argc, char* argv[]) {
   RegisterPeer(arg.local_port, arg.local, arg.ip, arg.remote_port);
 
   // 2.2 Start game loop
-  StartGame();
+  // StartGame();
 
   // 3 Define callback to restart game
   platformer::ShowcaseCallback cb;
@@ -77,6 +80,14 @@ int main(int argc, char* argv[]) {
   ser::GameState gs;
   Input input{false, false, false, false, false};
 
+  sf::Clock deltaClock;
+  std::string local_public_ip = "127.0.0.1:7000";
+  local_public_ip.resize(22);
+  char remote_public_ip[22]{0};
+
+  std::vector<std::string> items{"1st player", "2st player"};
+  int selectedIndex = 0;
+
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
     info.update(tick_index, gs.frame());
@@ -105,16 +116,40 @@ int main(int argc, char* argv[]) {
       info.update(velocity_key, vel_x, vel_y);
     }
 
+    ImGui::SFML::Update(window, deltaClock.restart());
+
+    ImGui::Begin("Network settings");
+    ImGui::InputText("Your public ip:port", &*local_public_ip.begin(), 22,
+                     ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputText("Peer public ip:port", remote_public_ip, 22);
+    if (ImGui::BeginCombo("Player", items[selectedIndex].c_str())) {
+      for (int i = 0; i < items.size(); ++i) {
+        bool isSelected = (selectedIndex == i);
+        if (ImGui::Selectable(items[i].c_str(), isSelected)) selectedIndex = i;
+        if (isSelected) ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+    if (ImGui::Button("CONNECT")) {
+      platformer::debug("Start session {} {} {}\n", local_public_ip,
+                        remote_public_ip, items[selectedIndex]);
+      cb.on_restart_handler();
+    };
+    ImGui::End();
+
     // 6. render
     scena.update(gs);
     window.clear(kBGColor);
     window.draw(scena);
     window.draw(info);
+    ImGui::SFML::Render(window);
     window.display();
   }
 
   // 7. release
   StopGame();
+
+  ImGui::SFML::Shutdown();
 
   return 0;
 }
@@ -123,6 +158,8 @@ void handleKeyboardInput(sf::RenderWindow& window, Input& input,
                          platformer::ShowcaseCallback cb) {
   sf::Event event;
   while (window.pollEvent(event)) {
+    ImGui::SFML::ProcessEvent(window, event);
+
     switch (event.type) {
       case sf::Event::Closed:
         window.close();

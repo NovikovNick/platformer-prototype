@@ -13,6 +13,10 @@
     {
       "name": "sfml",
       "version>=": "2.5.1#14"
+    },
+    {
+      "name": "imgui-sfml",
+      "version>=": "2.5"
     }
   ],
   "builtin-baseline": "8daf70c56ba9581f5251a5d4675eb771b6b34957"
