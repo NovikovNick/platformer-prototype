@@ -42,6 +42,22 @@ target_include_directories(frontend_async
 set_property(TARGET frontend_async PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+set(GGPO_SRC
+	"ggpo/api_ggpo.cc"
+	"ggpo/input_args.h"
+	"ggpo/net_game_loop.h"
+	"ggpo/net_game_loop.cc"
+	"ggpo/nongamestate.h")
+	
+set(NETWORK_SRC
+	"ggpo/network/endpoint.h"
+	"ggpo/network/exception.h"
+	"ggpo/network/hex.h"
+	"ggpo/network/stun_client.cc"
+	"ggpo/network/stun_client.h"
+	"ggpo/network/stun_protocol.h"
+	"ggpo/network/udp_socket.h"
+	"ggpo/network/udp_timeout_socket.cc")
 
 add_library (frontend_ggpo SHARED)
 add_library (Platformer::frontend_ggpo ALIAS frontend_ggpo)
@@ -50,11 +66,8 @@ target_sources(frontend_ggpo
 	INTERFACE 
 		"api.h"
 	PRIVATE
-		"ggpo/api_ggpo.cc"
-		"ggpo/input_args.h"
-		"ggpo/net_game_loop.h"
-		"ggpo/net_game_loop.cc"
-		"ggpo/nongamestate.h")
+		${GGPO_SRC}
+		${NETWORK_SRC})
 target_link_libraries(frontend_ggpo 
     PRIVATE
         Platformer::core

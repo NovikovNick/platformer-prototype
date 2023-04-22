@@ -11,12 +11,16 @@
 namespace {
 platformer::GameState gs;
 bool running = false;
+std::string local_public_ip = "disabled";
 }  // namespace
 
-void RegisterPeer(int local_port, bool is_master, const char* remote_host,
-                  int remote_port) {
-  throw new std::runtime_error("RegisterPeer is unsupported for async version");
+void Init(const bool is_1st_player){};
+
+Endpoint GetPublicEndpoint(const int local_port) {
+  return {local_public_ip.c_str(), 0};
 };
+
+void RegisterPeer(const Endpoint remote_endpoint){};
 
 void StartGame() {
   gs = platformer::GameState();
@@ -44,3 +48,5 @@ int GetState(uint8_t* buf) {
 GameStatus GetStatus() {
   return running ? GameStatus::RUN : GameStatus::STOPED;
 };
+
+PlatformerErrorCode GetErrorCode() { return PlatformerErrorCode::OK; };

@@ -9,10 +9,12 @@
 #include "../api.h"
 #include "game_state.h"
 #include "net_game_loop.h"
+#include "network/exception.h"
+#include "network/stun_client.h"
+#include "network/udp_socket.h"
 #include "util.h"
 
 namespace {
-//platformer::NetGameLoop* gl;
 auto gs = std::make_shared<platformer::GameState>();
 
 auto tick = std::make_shared<std::atomic<int>>(0);
@@ -24,17 +26,34 @@ std::mutex m;
 auto running = std::make_shared<std::atomic<bool>>(false);
 auto stopped = true;
 auto status = std::make_shared<std::atomic<int>>(2);
+
+PlatformerErrorCode error_code = PlatformerErrorCode::OK;
+std::string mapped_public_ip;
 }  // namespace
 
-void RegisterPeer(int local_port, bool is_master, const char* remote_host,
-                  int remote_port) {
-  args.local = is_master;
-  args.local_port = local_port;
-  args.remote_port = remote_port;
+void Init(const bool is_1st_player) { args.local = is_1st_player; };
 
-  std::string host(remote_host);
-  for (int i = 0; i < 32; ++i)
-    args.ip[i] = i < host.size() ? remote_host[i] : '\0';
+Endpoint GetPublicEndpoint(const int local_port) {
+  try {
+    args.local_port = local_port;
+    net::UdpSocket socket(args.local_port);  // RAII socket
+    net::StunClient stun_client(socket);
+    net::Endpoint stun_server{"64.233.163.127", 19302};  // stun.l.google.com
+    auto [public_ip, public_port] = stun_client.getMappedAddress(stun_server);
+    mapped_public_ip = public_ip;
+    return {mapped_public_ip.c_str(), public_port};
+  } catch (const net::StunResponseParseException& e) {
+    error_code = PlatformerErrorCode::UNABLE_TO_PARSE_STUN_RESPONSE;
+  } catch (...) {
+    error_code = PlatformerErrorCode::UNEXPECTED_ERROR;
+  }
+  return {mapped_public_ip.c_str(), 0};
+};
+
+void RegisterPeer(const Endpoint remote_endpoint) {
+  args.remote_port = remote_endpoint.remote_port;
+  memset(args.ip, '\0', 32);
+  strcpy(args.ip, remote_endpoint.remote_host);
 };
 
 void StartGame() {
@@ -76,8 +95,6 @@ int GetState(uint8_t* buf) {
 }
 
 GameStatus GetStatus() {
-  using namespace std::chrono_literals;
-  
   switch (status->load()) {
     case 0:
       return GameStatus::RUN;
@@ -85,7 +102,9 @@ GameStatus GetStatus() {
       return GameStatus::SYNC;
     case 2:
       return GameStatus::STOPED;
-      default :
-      throw std::runtime_error("No such status exist " + status->load());
+    default:
+      return GameStatus::INVALID;
   }
 };
+
+PlatformerErrorCode GetErrorCode() { return error_code; };

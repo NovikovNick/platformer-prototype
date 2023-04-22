@@ -15,19 +15,19 @@ set(SHOWCASE_UTIL
 	"util/util.cc")
 
 set(SYNC_SHOWCASE_SRC
-	"sync_showcase.cc"
+	"showcase.cc"
 	${SHOWCASE_SRC}
 	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}
 	${SHOWCASE_UI_SRC})
 set(ASYNC_SHOWCASE_SRC
-	"async_showcase.cc"
+	"showcase.cc"
 	${SHOWCASE_SRC}
 	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}
 	${SHOWCASE_UI_SRC})
 set(GGPO_SHOWCASE_SRC
-	"ggpo_showcase.cc"
+	"showcase.cc"
 	${SHOWCASE_SRC}
 	${SHOWCASE_UTIL}
 	${SHOWCASE_UI_HDR}

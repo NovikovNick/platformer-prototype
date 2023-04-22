@@ -20,13 +20,16 @@ auto p1_input = std::make_shared<std::atomic<int>>(0);
 std::mutex m;
 auto running = std::make_shared<std::atomic<bool>>(false);
 auto stopped = true;
-
+std::string local_public_ip = "disabled";
 }  // namespace
 
-void RegisterPeer(int local_port, bool is_master, const char* remote_host,
-                  int remote_port) {
-  throw new std::runtime_error("RegisterPeer is unsupported for async version");
+void Init(const bool is_1st_player){};
+
+Endpoint GetPublicEndpoint(const int local_port) {
+  return {local_public_ip.c_str(), 0};
 };
+
+void RegisterPeer(const Endpoint remote_endpoint){};
 
 void StartGame() {
   std::scoped_lock lock(m);

@@ -19,7 +19,9 @@ target_link_libraries(sync_showcase
         Platformer::frontend_sync
         sfml-graphics
         sfml-window
-        sfml-main)
+        sfml-main
+        imgui::imgui
+        ImGui-SFML::ImGui-SFML)
 set_target_properties(sync_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
@@ -36,7 +38,9 @@ target_link_libraries(async_showcase
         Platformer::frontend_async
         sfml-graphics
         sfml-window
-        sfml-main)
+        sfml-main
+        imgui::imgui
+        ImGui-SFML::ImGui-SFML)
 set_target_properties(async_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
