@@ -4,6 +4,8 @@
 
 #include <bitset>
 
+#include "game_state.h"
+
 namespace {
 
 inline FIX length(const FIX& x, const FIX& y) {
@@ -44,22 +46,15 @@ GameState::GameState()
     : frame(0),
       players_(std::vector<Player>{}),
       melee_attack(std::vector<GameObject>{}),
-      platforms_(std::vector<GameObject>{}) {
-  players_.emplace_back().obj.position = {FIX(192), FIX(704)};
-  players_.emplace_back().obj.position = {FIX(96), FIX(704)};
+      platforms_(std::vector<GameObject>{}),
+      left_top_mesh_(
+          {{kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}}) {
+  players_.emplace_back();
+  players_.emplace_back();
 
-  std::vector<VECTOR_2> mesh{
-      {kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}};
-  platforms_.emplace_back(864, 32, mesh).position = {FIX(0), FIX(864)};
-  platforms_.emplace_back(192, 32, mesh).position = {FIX(256), FIX(608)};
-  platforms_.emplace_back(224, 32, mesh).position = {FIX(672), FIX(736)};
-  platforms_.emplace_back(32, 256, mesh).position = {FIX(0), FIX(640)};
-  platforms_.emplace_back(32, 256, mesh).position = {FIX(864), FIX(640)};
+  melee_attack.emplace_back(0, 0, left_top_mesh_);
+  melee_attack.emplace_back(0, 0, left_top_mesh_);
 
-  melee_attack.emplace_back(0, 0, mesh);
-  melee_attack.emplace_back(0, 0, mesh);
-
-  using namespace boost::sml;
   fsms_.emplace_back(players_[0]);
   fsms_.emplace_back(players_[1]);
 }
@@ -69,6 +64,22 @@ GameState::GameState(GameState& src) {
   platforms_ = src.platforms_;
   melee_attack = src.melee_attack;
   frame = src.frame;
+}
+
+void GameState::removeAllPlatforms() {
+  std::scoped_lock lock{mutex_};
+  platforms_.clear();
+}
+
+void GameState::addPlatform(const int width, const int height, const int x,
+                            const int y) {
+  std::scoped_lock lock{mutex_};
+  auto& platform = platforms_.emplace_back(width, height, left_top_mesh_);
+  platform.position = {FIX(x), FIX(y)};
+}
+
+void GameState::setPlayerPosition(const int id, const int x, const int y) {
+  players_[id].obj.position = {FIX(x), FIX(y)};
 }
 
 void GameState::update(const int p0_input, const int p1_input,

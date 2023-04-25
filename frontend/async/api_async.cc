@@ -23,7 +23,19 @@ auto stopped = true;
 std::string local_public_ip = "disabled";
 }  // namespace
 
-void Init(const bool is_1st_player){};
+void Init(const Location location) {
+  // args.local = location.is_1st_player;
+  gs = std::make_shared<platformer::GameState>();
+  gs->setPlayerPosition(0, location.position_1st_player.x,
+                        location.position_1st_player.y);
+  gs->setPlayerPosition(1, location.position_2nd_player.x,
+                        location.position_2nd_player.y);
+  gs->removeAllPlatforms();
+  for (int i = 0; i < location.platforms_count; ++i) {
+    auto& it = location.platforms[i];
+    gs->addPlatform(it.width, it.height, it.position.x, it.position.y);
+  }
+};
 
 Endpoint GetPublicEndpoint(const int local_port) {
   return {local_public_ip.c_str(), 0};
@@ -36,7 +48,7 @@ void StartGame() {
   if (!running->load() && stopped) {
     running->store(true);
     stopped = false;
-    gs = std::make_shared<platformer::GameState>();
+
     std::thread([] {
       platformer::CoreGameLoop loop(gs, tick, p0_input, p1_input, running);
       loop();

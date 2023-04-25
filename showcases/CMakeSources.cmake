@@ -7,9 +7,12 @@ set(SHOWCASE_UI_SRC
 	"ui/info.cc"
 	"ui/rect_shape.cc"
 	"ui/scalable_grid.cc"
-	"ui/scene.cc")
+	"ui/scene.cc"
+	"ui/showcase_hud.cc"
+	"ui/showcase_hud.h")
 set(SHOWCASE_SRC
-	"showcase_callbacks.h")
+	"showcase_callbacks.h"
+	"showcase_context.h")
 set(SHOWCASE_UTIL
 	"util/util.h"
 	"util/util.cc")

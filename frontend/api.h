@@ -3,10 +3,10 @@
 #define EXPORT extern "C" __declspec(dllexport)
 
 enum GameStatus {
-  INVALID   = -1,
-  RUN       = 0,
-  SYNC      = 1,
-  STOPED    = 2,
+  INVALID = -1,
+  RUN = 0,
+  SYNC = 1,
+  STOPED = 2,
 };
 
 enum PlatformerErrorCode {
@@ -24,7 +24,23 @@ struct Endpoint {
   const int remote_port;
 };
 
-EXPORT void Init(const bool is_1st_player); // TODO: add platforms
+struct Point {
+  int x, y;
+};
+
+struct Platform {
+  int id, type, width, height;
+  Point position;
+};
+
+struct Location {
+  bool is_1st_player;
+  Point position_1st_player, position_2nd_player;
+  Platform* platforms;
+  unsigned long long platforms_count;
+};
+
+EXPORT void Init(const Location location);
 
 EXPORT Endpoint GetPublicEndpoint(const int local_port);
 

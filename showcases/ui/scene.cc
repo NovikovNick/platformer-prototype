@@ -9,34 +9,48 @@ Scene::Scene(sf::Color fst_color, sf::Color snd_color, sf::Color trd_color)
       shapes_(std::vector<platformer::RectShape>()),
       grid_(platformer::ScalableGrid(32)) {}
 
+void Scene::init(const ShowcaseContext ctx) {
+  shapes_.clear();
+
+  shapes_.emplace_back(ctx.active_player_id == 0 ? trd_color : fst_color, 0, 0,
+                       0, 0);
+  shapes_.emplace_back(ctx.active_player_id != 0 ? trd_color : fst_color, 0, 0,
+                       0, 0);
+
+  shapes_.emplace_back(snd_color, 0, 0, ctx.position_1st_player.x,
+                       ctx.position_1st_player.y);
+  shapes_.emplace_back(snd_color, 0, 0, ctx.position_2nd_player.x,
+                       ctx.position_2nd_player.y);
+
+  for (const auto& it : ctx.platforms) {
+    shapes_.emplace_back(fst_color, it.width, it.height, it.position.x,
+                         it.position.y);
+  }
+}
+
 void Scene::update(const ser::GameState& gs) {
-  if (shapes_.empty()) {
-    for (const auto& player : gs.players())
-      shapes_.emplace_back(trd_color, player.obj().width(),
-                           player.obj().height(), player.obj().position().x(),
-                           player.obj().position().y());
-
-    for (const auto& attack : gs.melee_attacks())
-      shapes_.emplace_back(snd_color, attack.width(), attack.height(),
-                           attack.position().x(), attack.position().y());
-
-    for (const auto& platform : gs.platforms())
-      shapes_.emplace_back(fst_color, platform.width(), platform.height(),
-                           platform.position().x(), platform.position().y());
+  int offset = 0;
+  for (int i = 0; i < gs.players_size() + offset; ++i) {
+    auto& player = gs.players()[i - offset];
+    shapes_[i].update(player.obj().position().x(), player.obj().position().y());
+    shapes_[i].updateSize(player.obj().width(), player.obj().height());
+    shapes_[i].update(1);
   }
+  offset += gs.players_size();
 
-  for (int player_id = 0; player_id < gs.players_size(); ++player_id) {
-    shapes_[player_id].update(gs.players()[player_id].obj().position().x(),
-                              gs.players()[player_id].obj().position().y());
-    shapes_[player_id].update(1);
+  for (int i = offset; i < gs.melee_attacks_size() + offset; ++i) {
+    auto& attack = gs.melee_attacks()[i - offset];
+    shapes_[i].update(attack.position().x(), attack.position().y());
+    shapes_[i].updateSize(attack.width(), attack.height());
+    shapes_[i].update(1);
   }
+  offset += gs.players_size();
 
-  for (int player_id = 0; player_id < gs.melee_attacks_size(); ++player_id) {
-    shapes_[player_id + 2].update(gs.melee_attacks()[player_id].position().x(),
-                                  gs.melee_attacks()[player_id].position().y());
-    shapes_[player_id + 2].updateSize(gs.melee_attacks()[player_id].width(),
-                                      gs.melee_attacks()[player_id].height());
-    shapes_[player_id + 2].update(1);
+  for (int i = offset; i < gs.platforms_size() + offset; ++i) {
+    auto& platform = gs.platforms()[i - offset];
+    shapes_[i].update(platform.position().x(), platform.position().y());
+    shapes_[i].updateSize(platform.width(), platform.height());
+    shapes_[i].update(1);
   }
 }
 

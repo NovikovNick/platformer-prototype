@@ -16,6 +16,8 @@ class GameState {
   std::mutex mutex_;
   PlayerLocomotionFSM fsms_;
 
+  std::vector<VECTOR_2> left_top_mesh_;
+
  public:
   int frame;
   std::vector<Player> players_;
@@ -24,9 +26,16 @@ class GameState {
 
   GameState();
   GameState(GameState& src);
+
+  // setup location
+  void removeAllPlatforms();
+  void addPlatform(const int width, const int height, const int x, const int y);
+  void setPlayerPosition(const int player_id, const int x, const int y);
+
   void update(const int p0_input, const int p1_input, const int frames);
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
+
 
   GameState getStateProjection();
   std::unique_lock<std::mutex> lock();
