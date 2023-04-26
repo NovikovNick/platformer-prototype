@@ -131,7 +131,6 @@ bool __cdecl vw_advance_frame_callback(int) {
  * Makes our current state match the state passed in by GGPO.
  */
 bool __cdecl vw_load_game_state_callback(unsigned char *buffer, int len) {
-  // memcpy(&gs, buffer, len);
   platformer::Serializer::deserialize(game_state, buffer, len);
   platformer::debug("deserialized\n");
   return true;

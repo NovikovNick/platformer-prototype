@@ -31,6 +31,7 @@ class GameState {
   void removeAllPlatforms();
   void addPlatform(const int width, const int height, const int x, const int y);
   void setPlayerPosition(const int player_id, const int x, const int y);
+  void refreshStateMachine();
 
   void update(const int p0_input, const int p1_input, const int frames);
   GameObject getPlayer(const int player_id);

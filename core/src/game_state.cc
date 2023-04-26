@@ -82,6 +82,12 @@ void GameState::setPlayerPosition(const int id, const int x, const int y) {
   players_[id].obj.position = {FIX(x), FIX(y)};
 }
 
+void GameState::refreshStateMachine() {
+  fsms_.clear();
+  fsms_.emplace_back(players_[0]);
+  fsms_.emplace_back(players_[1]);
+}
+
 void GameState::update(const int p0_input, const int p1_input,
                        const int frames) {
   int player_count = 2;

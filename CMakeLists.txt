@@ -2,7 +2,7 @@
 set(VCPKG_TARGET_TRIPLET x64-windows-static)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/external/vcpkg/scripts/buildsystems/vcpkg.cmake")
 project ("platformer"
-    VERSION 0.0.8
+    VERSION 0.0.9
     DESCRIPTION "Generic platformer library with rollback network"
     LANGUAGES CXX)
 

@@ -139,6 +139,8 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
 
   for (const auto& platform : serialized.platforms())
     gs->platforms_.push_back(convert(platform));
+  
+  gs->refreshStateMachine();
 
   return res;
 }
