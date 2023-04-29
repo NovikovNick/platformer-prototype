@@ -3,19 +3,15 @@
 #include <util.h>
 
 #include <bitset>
+#include <fpm/math.hpp>
 
 #include "game_state.h"
 
 namespace {
 
-inline FIX length(const FIX& x, const FIX& y) {
-  return FIX{std::sqrt(std::pow(static_cast<int>(x), 2) +
-                       std::pow(static_cast<int>(y), 2))};
-}
-
 inline VECTOR_2 normal(const VECTOR_2& val) {
   if (val.x() == kZero && val.y() == kZero) return {kZero, kZero};
-  return val / length(val.x(), val.y());
+  return val / fpm::sqrt(fpm::pow(val.x(), 2) + fpm::pow(val.y(), 2));
 }
 
 std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
@@ -97,12 +93,13 @@ void GameState::update(const int p0_input, const int p1_input,
   for (int player_id = 0; player_id < 2; ++player_id) {
     auto& player = players_[player_id];
     auto& fsm = fsms_[player_id];
+    //fsm(player);
 
     auto& vel_x = player.obj.velocity.x();
     auto& vel_y = player.obj.velocity.y();
 
-    std::bitset<5> input(player_id == 0 ? p0_input : p1_input);
-    std::bitset<5> prev_input(player.prev_input);
+    std::bitset<6> input(player_id == 0 ? p0_input : p1_input);
+    std::bitset<6> prev_input(player.prev_input);
 
     if (input[kInputLeft]) vel_x += FIX{-kAccelerationX};
     if (input[kInputRight]) vel_x += FIX{kAccelerationX};
@@ -122,6 +119,10 @@ void GameState::update(const int p0_input, const int p1_input,
     if (input[kInputUp] && !prev_input[kInputUp]) fsm.process_event(InputUp{});
     if (input[kInputLKM] && !prev_input[kInputLKM])
       fsm.process_event(InputLKM{});
+
+    if (input[kInputRKM] && !prev_input[kInputRKM])
+      player.current_health = std::max(player.current_health - 1, 0);
+
     player.prev_input = input.to_ulong();
 
     player.updateState(getState(fsm));

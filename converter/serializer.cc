@@ -82,6 +82,8 @@ static ser::Player convert(const platformer::Player& src, const bool fixed) {
   dst.set_left_direction(src.left_direction);
   dst.set_on_ground(src.on_ground);
   dst.set_on_damage(src.on_damage);
+  dst.set_current_health(src.current_health);
+  dst.set_max_health(src.max_health);
   return dst;
 }
 static platformer::Player convert(const ser::Player& src) {
@@ -93,6 +95,8 @@ static platformer::Player convert(const ser::Player& src) {
   dst.left_direction = src.left_direction();
   dst.on_ground = src.on_ground();
   dst.on_damage = src.on_damage();
+  dst.current_health = src.current_health();
+  dst.max_health = src.max_health();
   return dst;
 }
 
@@ -133,13 +137,19 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
   auto lock = gs->lock();
   gs->players_.clear();
   gs->platforms_.clear();
-  
+  gs->melee_attack.clear();
+
   for (const auto& player : serialized.players())
     gs->players_.push_back(convert(player));
 
   for (const auto& platform : serialized.platforms())
     gs->platforms_.push_back(convert(platform));
-  
+
+  for (const auto& it : serialized.melee_attacks())
+    gs->melee_attack.push_back(convert(it));
+
+  gs->frame = serialized.frame();
+
   gs->refreshStateMachine();
 
   return res;

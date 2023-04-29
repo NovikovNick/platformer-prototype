@@ -8,6 +8,7 @@
 namespace platformer {
 
 struct InputLKM {};
+struct InputRKM {};
 struct InputLeft {};
 struct InputRight {};
 struct InputUp {};

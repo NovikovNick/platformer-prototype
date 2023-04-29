@@ -33,6 +33,8 @@ message Player{
   bool on_ground = 5;
   bool on_damage = 6;
   bool left_direction = 7;
+  int32 current_health = 8;
+  int32 max_health = 9;
 }
 
 message GameState{

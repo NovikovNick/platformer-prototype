@@ -16,7 +16,8 @@ enum PlatformerErrorCode {
 };
 
 struct Input {
-  bool leftPressed, rightPressed, upPressed, downPressed, leftMouseClicked;
+  bool leftPressed, rightPressed, upPressed, downPressed, leftMouseClicked,
+      rightMouseClicked;
 };
 
 struct Endpoint {

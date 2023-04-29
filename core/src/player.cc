@@ -9,6 +9,8 @@ Player::Player()
       on_ground(false),
       on_damage(false),
       left_direction(false),
+      current_health(100),
+      max_health(100),
       obj(GameObject(64, 128,
                      {{FIX(0), FIX(1)},
                       {FIX(1), FIX(1)},

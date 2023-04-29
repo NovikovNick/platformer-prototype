@@ -71,10 +71,10 @@ int main(int argc, char* argv[]) {
   const int tick_index = info.addFormat("Tick:{:5d}\n");
   const int ser_index = info.addFormat("Serialized {:3d} bytes\n");
   const int status_index = info.addFormat("Status: {}\n");
-  info.update(info.addFormat("Press 'R' to restart\n"));
+  const int health_index = info.addFormat("HEALTH: {} / {}\n");
 
   ser::GameState gs;
-  Input input{false, false, false, false, false};
+  Input input{false, false, false, false, false, false};
 
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
@@ -102,6 +102,9 @@ int main(int argc, char* argv[]) {
       info.update(state_key, toString(p.state()), p.state_frame());
       info.update(position_key, pos_x, pos_y);
       info.update(velocity_key, vel_x, vel_y);
+      info.update(health_index,
+                  gs.players()[ctx.active_player_id].current_health(),
+                  gs.players()[ctx.active_player_id].max_health());
 
       /*
       platformer::debug("{:7s}#{:3d}: ", toString(p.state()), p.state_frame());
@@ -172,14 +175,16 @@ void handleKeyboardInput(sf::RenderWindow& window, Input& input,
         }
         break;
       case sf::Event::MouseButtonPressed:
-        if (event.mouseButton.button == sf::Mouse::Left) {
+        if (event.mouseButton.button == sf::Mouse::Left)
           input.leftMouseClicked = true;
-        }
+        if (event.mouseButton.button == sf::Mouse::Right)
+          input.rightMouseClicked = true;
         break;
       case sf::Event::MouseButtonReleased:
-        if (event.mouseButton.button == sf::Mouse::Left) {
+        if (event.mouseButton.button == sf::Mouse::Left)
           input.leftMouseClicked = false;
-        }
+        if (event.mouseButton.button == sf::Mouse::Right)
+          input.rightMouseClicked = false;
         break;
     }
   }

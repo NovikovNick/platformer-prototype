@@ -22,6 +22,7 @@ const static int kInputRight = 1;
 const static int kInputUp = 2;
 const static int kInputDown = 3;
 const static int kInputLKM = 4;
+const static int kInputRKM = 5;
 
 const static int kPlayerCount = 2;
 
