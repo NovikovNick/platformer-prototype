@@ -61,8 +61,10 @@ int main() {
         return 1;
       }
     }
+    debug("{} rollback synchronised \n", i);
   }
-
+  debug("All rollback synchronised!\n");
+  
   return 0;
 }
 

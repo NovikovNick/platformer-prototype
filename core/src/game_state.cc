@@ -51,8 +51,8 @@ GameState::GameState()
   melee_attack.emplace_back(0, 0, left_top_mesh_);
   melee_attack.emplace_back(0, 0, left_top_mesh_);
 
-  fsms_.emplace_back(players_[0]);
-  fsms_.emplace_back(players_[1]);
+  fsms_.emplace_back(players_[0]).process_event(InputNone{});
+  fsms_.emplace_back(players_[1]).process_event(InputNone{});
 }
 
 GameState::GameState(GameState& src) {
@@ -80,8 +80,8 @@ void GameState::setPlayerPosition(const int id, const int x, const int y) {
 
 void GameState::refreshStateMachine() {
   fsms_.clear();
-  fsms_.emplace_back(players_[0]);
-  fsms_.emplace_back(players_[1]);
+  fsms_.emplace_back(players_[0]).process_event(InputNone{});
+  fsms_.emplace_back(players_[1]).process_event(InputNone{});
 }
 
 void GameState::update(const int p0_input, const int p1_input,
@@ -90,7 +90,7 @@ void GameState::update(const int p0_input, const int p1_input,
   std::scoped_lock lock{mutex_};
   ++frame;
 
-  for (int player_id = 0; player_id < 2; ++player_id) {
+  for (int player_id = 0; player_id < player_count; ++player_id) {
     auto& player = players_[player_id];
     auto& fsm = fsms_[player_id];
 

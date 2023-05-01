@@ -15,6 +15,7 @@ struct InputUp {};
 struct InputDown {};
 struct InputNone {};
 
+class initial;
 class idle;
 class run;
 class jump;
@@ -31,6 +32,10 @@ struct FrameGreat {
   int frame;
   auto operator()(const Player& ctx) const { return ctx.state_frame > frame; }
 };
+struct IsState {
+  PlayerState state;
+  auto operator()(const Player& ctx) const { return ctx.state == state; }
+};
 
 struct player_locomotion_table {
   auto operator()() const {
@@ -38,6 +43,7 @@ struct player_locomotion_table {
     const auto onGround = [](const Player& ctx) { return ctx.on_ground; };
     const auto inAir = [](const Player& ctx) { return !ctx.on_ground; };
 
+    auto initial_s = state<initial>;
     auto idle_s = state<idle>;
     auto run_s = state<run>;
     auto jump_s = state<jump>;
@@ -57,7 +63,16 @@ struct player_locomotion_table {
      * Transition DSL: src_state + event [ guard ] / action = dst_state
      */
     return make_transition_table(
-        *idle_s + none[onGround] = idle_s,
+
+        *initial_s + none[IsState{PlayerState::IDLE}] = idle_s,
+        initial_s + none[IsState{PlayerState::RUN}] = run_s,
+        initial_s + none[IsState{PlayerState::JUMP}] = jump_s,
+        initial_s + none[IsState{PlayerState::FALLING}] = falling_s,
+        initial_s + none[IsState{PlayerState::LANDING}] = landing_s,
+        initial_s + none[IsState{PlayerState::ATTACK_ON_GROUND}] = attack_s,
+        initial_s + none[IsState{PlayerState::DEATH}] = death_s,
+
+        idle_s + none[onGround] = idle_s,
         idle_s + input_left[onGround] = run_s,
         idle_s + input_right[onGround] = run_s,
         idle_s + input_up[onGround] = jump_s,
