@@ -1,5 +1,6 @@
 #include <schema.pb.h>
 #include <serializer.h>
+#include <util.h>
 
 #include <bitset>
 #include <chrono>
@@ -12,7 +13,6 @@
 #include "network/exception.h"
 #include "network/stun_client.h"
 #include "network/udp_socket.h"
-#include "util.h"
 
 namespace {
 auto gs = std::make_shared<platformer::GameState>();

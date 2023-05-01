@@ -93,7 +93,6 @@ void GameState::update(const int p0_input, const int p1_input,
   for (int player_id = 0; player_id < 2; ++player_id) {
     auto& player = players_[player_id];
     auto& fsm = fsms_[player_id];
-    //fsm(player);
 
     auto& vel_x = player.obj.velocity.x();
     auto& vel_y = player.obj.velocity.y();

@@ -1,5 +1,5 @@
-#ifndef GEOM_2D_MATH_UTIL_H
-#define GEOM_2D_MATH_UTIL_H
+#ifndef PLATFORMER_UTIL_H
+#define PLATFORMER_UTIL_H
 
 #include <format>
 #include <iostream>
@@ -12,5 +12,7 @@ void debug(const std::string& str, Args... args) {
   std::cout << std::vformat(str, std::make_format_args(args...));
 }
 
-};      // namespace math
-#endif  // GEOM_2D_MATH_UTIL_H
+int fletcher32_checksum(short* data, size_t len);
+
+};      // namespace platformer
+#endif  // PLATFORMER_UTIL_H
