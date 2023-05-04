@@ -35,6 +35,19 @@ void Scene::update(const ser::GameState& gs) {
     shapes_[i].update(player.obj().position().x(), player.obj().position().y());
     shapes_[i].updateSize(player.obj().width(), player.obj().height());
     shapes_[i].update(1);
+
+    shapes_[i].update(player.on_damage() ? sf::Color::Red : sf::Color::White);
+
+    if (player.state() == ser::PlayerState::BLOCK)
+      shapes_[i].update(sf::Color::Yellow);
+    if (player.state() == ser::PlayerState::SQUAT_BLOCK)
+      shapes_[i].update(sf::Color::Yellow);
+    if (player.state() == ser::PlayerState::DEATH) {
+      uint8_t red = 255 * std::cos(gs.frame() / 10);
+      uint8_t green = 255 * std::sin(gs.frame() / 5);
+      uint8_t blue = 255 * std::sin(gs.frame() / 15);
+      shapes_[i].update(sf::Color{red, green, blue});
+    }
   }
   offset += gs.players_size();
 

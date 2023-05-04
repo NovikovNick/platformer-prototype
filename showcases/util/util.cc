@@ -30,10 +30,40 @@ std::string toString(const ser::PlayerState& state) {
       return "FALLING";
     case ser::PlayerState::LANDING:
       return "LANDING";
-    case ser::PlayerState::ATTACK_ON_GROUND:
-      return "ATTACK";
+    case ser::PlayerState::SQUAT:
+      return "SQUAT";
+    case ser::PlayerState::BLOCK:
+      return "BLOCK";
+    case ser::PlayerState::SQUAT_BLOCK:
+      return "SQUAT_BLOCK";
+    case ser::PlayerState::LOW_ATTACK:
+      return "LOW_ATTACK";
+    case ser::PlayerState::MID_ATTACK:
+      return "MID_ATTACK";
+    case ser::PlayerState::OVERHEAD_ATTACK:
+      return "OVERHEAD_ATTACK";
+    case ser::PlayerState::HIT_STUN:
+      return "HIT_STUN";
+    case ser::PlayerState::BLOCK_STUN:
+      return "BLOCK_STUN";
+    case ser::PlayerState::SQUAT_BLOCK_STUN:
+      return "BLOCK_STUN";
     case ser::PlayerState::DEATH:
       return "DEATH";
+  }
+}
+
+
+std::string toString(const ser::AttackPhase& phase) {
+  switch (phase) {
+    case ser::AttackPhase::STARTUP:
+      return "STARTUP";
+    case ser::AttackPhase::ACTIVE:
+      return "ACTIVE";
+    case ser::AttackPhase::RECOVERY:
+      return "RECOVERY";
+    case ser::AttackPhase::NONE:
+      return "NONE";
   }
 }
 

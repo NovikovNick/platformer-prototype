@@ -10,21 +10,26 @@ enum class PlayerState {
   JUMP = 2,
   FALLING = 3,
   LANDING = 4,
-  ATTACK_ON_GROUND = 5,
-  DEATH = 6
+  SQUAT = 5,
+  OVERHEAD_ATTACK = 6,
+  MID_ATTACK = 7,
+  LOW_ATTACK = 8,
+  BLOCK = 9,
+  SQUAT_BLOCK = 10,
+  HIT_STUN = 11,
+  BLOCK_STUN = 12,
+  SQUAT_BLOCK_STUN = 13,
+  DEATH = 14
 };
 
-enum class AttackPhase{
-  STARTUP = 0,
-  ACTIVE = 1,
-  RECOVERY = 2
-};
+enum class AttackPhase { STARTUP = 0, ACTIVE = 1, RECOVERY = 2, NONE = 3 };
 
 class Player {
  public:
   GameObject obj;
   PlayerState state;
   uint64_t state_frame;
+  AttackPhase attack_phase;
   int prev_input;
   int current_health, max_health;
   bool on_ground, on_damage, left_direction;

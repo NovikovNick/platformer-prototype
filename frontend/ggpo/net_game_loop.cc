@@ -255,7 +255,7 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
   cb.log_game_state = vw_log_game_state;
 
   const int num_players = 2;
-  const int frame_delay = 2;
+  const int frame_delay = 4;
   auto input_size = sizeof(int);
   const char *title = "platformer";
 

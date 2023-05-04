@@ -21,8 +21,23 @@ enum PlayerState {
   JUMP = 2;
   FALLING = 3;
   LANDING = 4;
-  ATTACK_ON_GROUND = 5;
-  DEATH = 6;
+  SQUAT = 5;
+  OVERHEAD_ATTACK = 6;
+  MID_ATTACK = 7;
+  LOW_ATTACK = 8;
+  BLOCK = 9;
+  SQUAT_BLOCK = 10;
+  HIT_STUN = 11;
+  BLOCK_STUN = 12;
+  SQUAT_BLOCK_STUN = 13;
+  DEATH = 14;
+}
+
+enum AttackPhase { 
+    STARTUP = 0; 
+    ACTIVE = 1;
+    RECOVERY = 2;
+    NONE = 3;
 }
 
 message Player{
@@ -35,6 +50,7 @@ message Player{
   bool left_direction = 7;
   int32 current_health = 8;
   int32 max_health = 9;
+  AttackPhase attack_phase = 10;
 }
 
 message GameState{

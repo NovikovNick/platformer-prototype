@@ -13,7 +13,7 @@
 #include "util/util.h"
 
 void handleKeyboardInput(sf::RenderWindow& window, Input& input,
-                         platformer::ShowcaseCallback cb,
+                         platformer::ShowcaseCallback& cb,
                          platformer::ShowcaseHUD& hud);
 
 int main(int argc, char* argv[]) {
@@ -71,7 +71,8 @@ int main(int argc, char* argv[]) {
   const int tick_index = info.addFormat("Tick:{:5d}\n");
   const int ser_index = info.addFormat("Serialized {:3d} bytes\n");
   const int status_index = info.addFormat("Status: {}\n");
-  const int health_index = info.addFormat("HEALTH: {} / {}\n");
+  const int p1_health_index = info.addFormat("PLAYER 1 HEALTH: {} / {}\n");
+  const int p2_health_index = info.addFormat("PLAYER 2 HEALTH: {} / {}\n");
 
   ser::GameState gs;
   Input input{false, false, false, false, false, false};
@@ -102,15 +103,15 @@ int main(int argc, char* argv[]) {
       info.update(state_key, toString(p.state()), p.state_frame());
       info.update(position_key, pos_x, pos_y);
       info.update(velocity_key, vel_x, vel_y);
-      info.update(health_index,
-                  gs.players()[ctx.active_player_id].current_health(),
-                  gs.players()[ctx.active_player_id].max_health());
+      info.update(p1_health_index, gs.players()[0].current_health(),
+                  gs.players()[0].max_health());
+      info.update(p2_health_index, gs.players()[1].current_health(),
+                  gs.players()[1].max_health());
 
-      /*
-      platformer::debug("{:7s}#{:3d}: ", toString(p.state()), p.state_frame());
+      platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
+                        toString(p.attack_phase()), p.state_frame());
       platformer::debug("pos[{:4d},{:4d}], ", pos_x, pos_y);
       platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);
-      */
     }
 
     // render
@@ -129,7 +130,7 @@ int main(int argc, char* argv[]) {
 }
 
 void handleKeyboardInput(sf::RenderWindow& window, Input& input,
-                         platformer::ShowcaseCallback cb,
+                         platformer::ShowcaseCallback& cb,
                          platformer::ShowcaseHUD& hud) {
   sf::Event event;
   while (window.pollEvent(event)) {
@@ -141,8 +142,6 @@ void handleKeyboardInput(sf::RenderWindow& window, Input& input,
         break;
       case sf::Event::KeyPressed:
         switch (event.key.code) {
-          case sf::Keyboard::R:
-            cb.on_restart_handler();
             break;
           case sf::Keyboard::A:
             input.leftPressed = true;

@@ -12,6 +12,7 @@ void print(const std::string& title, std::shared_ptr<platformer::GameState> gs);
 struct State {
   uint8_t* buf;
   int length, checksum, input1, input2;
+  platformer::PlayerState player1, player2;
 };
 
 int main() {
@@ -28,12 +29,14 @@ int main() {
   gs->addPlatform(32, 256, 0, 640);
   gs->addPlatform(32, 256, 864, 640);
 
-  for (auto& [buf, length, checksum, input1, input2] : states) {
+  for (auto& [buf, length, checksum, input1, input2, p1, p2] : states) {
     if (!Serializer::serialize(gs, &buf, &length)) return 1;
     checksum = fletcher32_checksum((short*)buf, length / 2);
     input1 = getRandomInput();
     input2 = getRandomInput();
     gs->update(input1, input2, 1);
+    p1 = gs->players_[0].state;
+    p2 = gs->players_[1].state;
   }
 
   uint8_t* out;
@@ -41,9 +44,8 @@ int main() {
   for (int i = 0; i < n; ++i) {
     // reproduce rollback: get saved serialized stated and desirialize it to
     // current gs
-    auto [buf, l, checksum, input1, input2] = states[i];
+    auto [buf, l, checksum, input1, input2, p1, p2] = states[i];
     Serializer::deserialize(gs, buf, l);
-
     for (int j = i + 1; j < n; ++j) {
       // Act: Perform advance frame operation
       gs->update(states[j - 1].input1, states[j - 1].input2, 1);
@@ -52,7 +54,24 @@ int main() {
         return 1;
       }
 
-      // Assert: Check advansed checksum and expected saved checksum
+      // Assert:
+      if (states[j - 1].player1 != gs->players_[0].state) {
+        debug("Failed player 1 state from {} to {}!\n", i, j);
+        debug("Expected {} but was {}\n",
+              static_cast<int>(states[j - 1].player1),
+              static_cast<int>(gs->players_[0].state));
+        return 1;
+      }
+
+      if (states[j - 1].player2 != gs->players_[1].state) {
+        debug("Failed player 2 state from {} to {}!\n", i, j);
+        debug("Expected {} but was {}\n",
+              static_cast<int>(states[j - 1].player2),
+              static_cast<int>(gs->players_[1].state));
+        return 1;
+      }
+
+      // Check advansed checksum and expected saved checksum
       if (states[j].checksum != fletcher32_checksum((short*)out, l / 2)) {
         Serializer::deserialize(expected_gs, states[j].buf, states[j].length);
         debug("Failed checksum: from {} to {}!\n", i, j);
@@ -61,10 +80,10 @@ int main() {
         return 1;
       }
     }
-    debug("{} rollback synchronised \n", i);
+    debug("{} rollback synchronised with state {} \n", i, static_cast<int>(p1));
   }
   debug("All rollback synchronised!\n");
-  
+
   return 0;
 }
 

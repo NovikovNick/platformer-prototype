@@ -11,6 +11,8 @@ platformer::Info initInfo(sf::Color color);
 
 sf::RenderWindow openWindow(const std::string title);
 
+std::string toString(const ser::AttackPhase& phase);
+
 std::string toString(const ser::PlayerState& state);
 
 std::string toString(GameStatus status);

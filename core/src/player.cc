@@ -5,6 +5,7 @@ namespace platformer {
 Player::Player()
     : state(PlayerState::IDLE),
       state_frame(0),
+      attack_phase(AttackPhase::NONE),
       prev_input(0),
       on_ground(false),
       on_damage(false),

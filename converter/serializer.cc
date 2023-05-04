@@ -19,7 +19,8 @@ static ser::GameObject convert(const platformer::GameObject& src,
                                const bool fixed) {
   ser::GameObject dst;
 
-  for (const auto& point : src.mesh) dst.mutable_mesh()->Add(convert(point, fixed));
+  for (const auto& point : src.mesh)
+    dst.mutable_mesh()->Add(convert(point, fixed));
   dst.set_width(src.width_);
   dst.set_height(src.height_);
 
@@ -36,6 +37,33 @@ static platformer::GameObject convert(const ser::GameObject& src) {
   return dst;
 }
 
+static ser::AttackPhase convert(const platformer::AttackPhase& src) {
+  switch (src) {
+    case platformer::AttackPhase::ACTIVE:
+      return ser::AttackPhase::ACTIVE;
+    case platformer::AttackPhase::RECOVERY:
+      return ser::AttackPhase::RECOVERY;
+    case platformer::AttackPhase::STARTUP:
+      return ser::AttackPhase::STARTUP;
+    case platformer::AttackPhase::NONE:
+      return ser::AttackPhase::NONE;
+  }
+}
+
+
+static platformer::AttackPhase convert(const ser::AttackPhase& src) {
+  switch (src) {
+    case ser::AttackPhase::ACTIVE:
+      return platformer::AttackPhase::ACTIVE;
+    case ser::AttackPhase::RECOVERY:
+      return platformer::AttackPhase::RECOVERY;
+    case ser::AttackPhase::STARTUP:
+      return platformer::AttackPhase::STARTUP;
+    case ser::AttackPhase::NONE:
+      return platformer::AttackPhase::NONE;
+  }
+}
+
 static ser::PlayerState convert(const platformer::PlayerState& src) {
   switch (src) {
     case platformer::PlayerState::IDLE:
@@ -48,8 +76,24 @@ static ser::PlayerState convert(const platformer::PlayerState& src) {
       return ser::PlayerState::FALLING;
     case platformer::PlayerState::LANDING:
       return ser::PlayerState::LANDING;
-    case platformer::PlayerState::ATTACK_ON_GROUND:
-      return ser::PlayerState::ATTACK_ON_GROUND;
+    case platformer::PlayerState::LOW_ATTACK:
+      return ser::PlayerState::LOW_ATTACK;
+    case platformer::PlayerState::MID_ATTACK:
+      return ser::PlayerState::MID_ATTACK;
+    case platformer::PlayerState::OVERHEAD_ATTACK:
+      return ser::PlayerState::OVERHEAD_ATTACK;
+    case platformer::PlayerState::SQUAT:
+      return ser::PlayerState::SQUAT;
+    case platformer::PlayerState::SQUAT_BLOCK:
+      return ser::PlayerState::SQUAT_BLOCK;
+    case platformer::PlayerState::BLOCK:
+      return ser::PlayerState::BLOCK;
+    case platformer::PlayerState::HIT_STUN:
+      return ser::PlayerState::HIT_STUN;
+    case platformer::PlayerState::BLOCK_STUN:
+      return ser::PlayerState::BLOCK_STUN;
+    case platformer::PlayerState::SQUAT_BLOCK_STUN:
+      return ser::PlayerState::SQUAT_BLOCK_STUN;
     case platformer::PlayerState::DEATH:
       return ser::PlayerState::DEATH;
   }
@@ -66,8 +110,24 @@ static platformer::PlayerState convert(const ser::PlayerState& src) {
       return platformer::PlayerState::FALLING;
     case ser::PlayerState::LANDING:
       return platformer::PlayerState::LANDING;
-    case ser::PlayerState::ATTACK_ON_GROUND:
-      return platformer::PlayerState::ATTACK_ON_GROUND;
+    case ser::PlayerState::LOW_ATTACK:
+      return platformer::PlayerState::LOW_ATTACK;
+    case ser::PlayerState::MID_ATTACK:
+      return platformer::PlayerState::MID_ATTACK;
+    case ser::PlayerState::OVERHEAD_ATTACK:
+      return platformer::PlayerState::OVERHEAD_ATTACK;
+    case ser::PlayerState::SQUAT:
+      return platformer::PlayerState::SQUAT;
+    case ser::PlayerState::SQUAT_BLOCK:
+      return platformer::PlayerState::SQUAT_BLOCK;
+    case ser::PlayerState::BLOCK:
+      return platformer::PlayerState::BLOCK;
+    case ser::PlayerState::HIT_STUN:
+      return platformer::PlayerState::HIT_STUN;
+    case ser::PlayerState::BLOCK_STUN:
+      return platformer::PlayerState::BLOCK_STUN;
+    case ser::PlayerState::SQUAT_BLOCK_STUN:
+      return platformer::PlayerState::SQUAT_BLOCK_STUN;
     case ser::PlayerState::DEATH:
       return platformer::PlayerState::DEATH;
   }
@@ -84,6 +144,7 @@ static ser::Player convert(const platformer::Player& src, const bool fixed) {
   dst.set_on_damage(src.on_damage);
   dst.set_current_health(src.current_health);
   dst.set_max_health(src.max_health);
+  dst.set_attack_phase(convert(src.attack_phase));
   return dst;
 }
 static platformer::Player convert(const ser::Player& src) {
@@ -97,6 +158,7 @@ static platformer::Player convert(const ser::Player& src) {
   dst.on_damage = src.on_damage();
   dst.current_health = src.current_health();
   dst.max_health = src.max_health();
+  dst.attack_phase = convert(src.attack_phase());
   return dst;
 }
 

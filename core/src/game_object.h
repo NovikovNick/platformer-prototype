@@ -29,7 +29,11 @@ const static int kPlayerCount = 2;
 // braking:               4  frame
 const static int kJumpHeight = 128;
 const static int kJump = 12;
-const static int kAttack = 6;
+const static int kMidAttack = 24;
+const static int kLowAttack = 31;
+const static int kOverHeadAttack = 31;
+const static int kHitStun = 15;
+const static int kBlockStun = 5;
 const static int kAccelerationX = 1;
 const static float kAccelerationGravity = 1.5f;
 const static int kMaxVelocityX = 12;

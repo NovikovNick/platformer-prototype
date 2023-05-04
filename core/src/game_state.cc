@@ -92,51 +92,73 @@ void GameState::update(const int p0_input, const int p1_input,
 
   for (int player_id = 0; player_id < player_count; ++player_id) {
     auto& player = players_[player_id];
-    auto& fsm = fsms_[player_id];
+    if (player.state == PlayerState::DEATH) {
+      melee_attack[player_id].height_ = melee_attack[player_id].width_ = 0;
+      continue;
+    }
 
     auto& vel_x = player.obj.velocity.x();
     auto& vel_y = player.obj.velocity.y();
-
     std::bitset<6> input(player_id == 0 ? p0_input : p1_input);
-    std::bitset<6> prev_input(player.prev_input);
 
-    if (input[kInputLeft]) vel_x += FIX{-kAccelerationX};
+    if (input[kInputLeft]) vel_x -= FIX{kAccelerationX};
     if (input[kInputRight]) vel_x += FIX{kAccelerationX};
 
-    // 1. update FSM
-    ++player.state_frame;
-
-    fsm.process_event(InputNone{});
-    if (input[kInputLeft]) {
-      fsm.process_event(InputLeft{});
-      player.left_direction = true;
-    }
-    if (input[kInputRight]) {
-      fsm.process_event(InputRight{});
-      player.left_direction = false;
-    }
-    if (input[kInputUp] && !prev_input[kInputUp]) fsm.process_event(InputUp{});
-    if (input[kInputLKM] && !prev_input[kInputLKM])
-      fsm.process_event(InputLKM{});
-
-    if (input[kInputRKM] && !prev_input[kInputRKM])
-      player.current_health = std::max(player.current_health - 1, 0);
-
-    player.prev_input = input.to_ulong();
-
-    player.updateState(getState(fsm));
+    auto prev_state = player.state;
+    // 1. calculate player state and frame
+    updatePlayerState(player_id, player_id == 0 ? p0_input : p1_input);
 
     // 2. update input
-    if (player.is(PlayerState::FALLING)) vel_y += FIX{kAccelerationGravity};
-    if (player.is(PlayerState::ATTACK_ON_GROUND)) {
-      melee_attack[player_id].position.x() =
-          player.obj.position.x() + player.obj.width_ / 2;
-      melee_attack[player_id].position.y() = player.obj.position.y();
+    if (player.is(PlayerState::BLOCK)) vel_x = kZero;
 
-      melee_attack[player_id].width_ =
-          24 * player.state_frame * (player.left_direction ? -1 : 1);
-      melee_attack[player_id].height_ = player.obj.height_;
+    if (player.is(PlayerState::SQUAT) || player.is(PlayerState::LOW_ATTACK) ||
+        player.is(PlayerState::SQUAT_BLOCK)) {
+      vel_x = kZero;
+      if (prev_state != PlayerState::SQUAT) {
+        player.obj.height_ = 64;
+      }
+    } else if (prev_state == PlayerState::SQUAT ||
+               prev_state == PlayerState::LOW_ATTACK ||
+               prev_state == PlayerState::SQUAT_BLOCK) {
+      player.obj.height_ = 128;
+      player.obj.position.y() -= 64;
+    }
+
+    if (!player.on_ground) vel_y += FIX{kAccelerationGravity};
+
+    if (player.is(PlayerState::OVERHEAD_ATTACK)) {
+      vel_x = kZero;
+
+      updateAttackPhase(player_id, 14, 2, 160);
+
+      auto& attack = melee_attack[player_id];
+      attack.height_ = player.obj.height_;
+      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
+                            player.obj.position.x() + player.obj.width_ / 2;
+      attack.position.y() = player.obj.position.y();
+
+    } else if (player.is(PlayerState::MID_ATTACK)) {
+      vel_x = kZero;
+
+      updateAttackPhase(player_id, 7, 2, 96);
+
+      auto& attack = melee_attack[player_id];
+      attack.height_ = player.obj.height_ / 3;
+      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
+                            player.obj.position.x() + player.obj.width_ / 2;
+      attack.position.y() = player.obj.position.y();
+    } else if (player.is(PlayerState::LOW_ATTACK)) {
+      vel_x = kZero;
+
+      updateAttackPhase(player_id, 14, 2, 128);
+
+      auto& attack = melee_attack[player_id];
+      attack.height_ = player.obj.height_;
+      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
+                            player.obj.position.x() + player.obj.width_ / 2;
+      attack.position.y() = player.obj.position.y();
     } else {
+      player.attack_phase = AttackPhase::NONE;
       melee_attack[player_id].width_ = 0;
       melee_attack[player_id].height_ = 0;
     }
@@ -144,8 +166,7 @@ void GameState::update(const int p0_input, const int p1_input,
     if (player.is(PlayerState::JUMP))
       vel_y = -kJumpDelta * (kJump - player.state_frame);
 
-    if (player.is(PlayerState::ATTACK_ON_GROUND) ||
-        (!input[kInputLeft] && !input[kInputRight])) {
+    if (!input[kInputLeft] && !input[kInputRight]) {
       vel_x *= player.on_ground ? FIX{0.5} : FIX{0.9};
       if (static_cast<int>(vel_x) == 0) vel_x = kZero;
     }
@@ -170,19 +191,13 @@ void GameState::update(const int p0_input, const int p1_input,
     if (player.on_ground && vel_y > kZero) vel_y = kZero;
   }
 
-  // 5. resolve damage
-  for (int player_id = 0; player_id < kPlayerCount; ++player_id) {
-    players_[player_id].on_damage = false;
-  }
-  for (int i = 0; i < kPlayerCount; ++i) {
-    for (int player_id = 0; player_id < kPlayerCount; ++player_id) {
-      if (player_id == i) continue;
-      auto [x, y] = isIntersect(melee_attack[i], players_[player_id].obj);
-      if (x != kZero && y != kZero) {
-        players_[player_id].on_damage = true;
-      }
-    }
-  }
+  // set player direction
+  players_[0].left_direction =
+      players_[0].obj.position.x() > players_[1].obj.position.x();
+  players_[1].left_direction =
+      players_[1].obj.position.x() > players_[0].obj.position.x();
+
+  for (int id = 0; id < kPlayerCount; ++id) resolveDamage(id);
 }
 
 GameState GameState::getStateProjection() {
@@ -224,5 +239,109 @@ bool GameState::checkPlatform(const int player_id) {
     }
   }
   return false;
+}
+
+void GameState::resolveDamage(const int player_id) {
+  auto& player = players_[player_id];
+  auto state = player.state;
+  // player.on_damage = false;
+
+  std::vector<std::pair<int, int>> data(64);
+  data[static_cast<int>(PlayerState::LOW_ATTACK)] = {10, 2};
+  data[static_cast<int>(PlayerState::MID_ATTACK)] = {2, 1};
+  data[static_cast<int>(PlayerState::OVERHEAD_ATTACK)] = {10, 2};
+
+  for (int i = 0; i < kPlayerCount; ++i) {
+    if (player_id == i) continue;
+    auto& enemy = players_[i];
+
+    if (enemy.attack_phase == AttackPhase::ACTIVE) {
+      auto [x, y] = isIntersect(melee_attack[i], player.obj);
+      auto [damage, chip_damage] = data[static_cast<int>(enemy.state)];
+
+      if (x != kZero && y != kZero) {
+        if (state == PlayerState::BLOCK) {
+          state = PlayerState::BLOCK_STUN;
+          if (!player.on_damage) player.current_health -= chip_damage;
+
+        } else if (state == PlayerState::SQUAT_BLOCK) {
+          state = PlayerState::SQUAT_BLOCK_STUN;
+
+          if (!player.on_damage) player.current_health -= chip_damage;
+
+        } else {
+          state = PlayerState::HIT_STUN;
+          if (!player.on_damage) player.current_health -= damage;
+        }
+        player.on_damage = true;
+      } else {
+        player.on_damage = false;
+      }
+
+      if (player.current_health <= 0) player.state = PlayerState::DEATH;
+    } else {
+      player.on_damage = false;
+    }
+  }
+}
+
+void GameState::updatePlayerState(const int player_id, const int player_input) {
+  auto& player = players_[player_id];
+
+  auto& fsm = fsms_[player_id];
+  std::bitset<6> prev_input(player.prev_input);
+  std::bitset<6> input(player_input);
+  ++player.state_frame;
+
+  fsm.process_event(InputNone{});  // !
+
+  if (input[kInputDown]) fsm.process_event(InputDown{});
+  if (input[kInputLeft]) fsm.process_event(InputLeft{});
+  if (input[kInputRight]) fsm.process_event(InputRight{});
+  if (input[kInputUp] && !prev_input[kInputUp]) fsm.process_event(InputUp{});
+
+  if (input[kInputLKM] && !prev_input[kInputLKM]) {
+    if (prev_input[kInputDown]) {
+      fsm.process_event(InputDownLKM{});
+    } else if (player.left_direction && prev_input[kInputRight]) {
+      fsm.process_event(InputBackwardLKM{});
+    } else if (!player.left_direction && prev_input[kInputLeft]) {
+      fsm.process_event(InputBackwardLKM{});
+    } else {
+      fsm.process_event(InputLKM{});
+    }
+  }
+
+  if (input[kInputRKM]) {
+    if (prev_input[kInputDown]) {
+      fsm.process_event(InputDownRKM{});
+    } else {
+      fsm.process_event(InputRKM{});
+    }
+  }
+
+  player.prev_input = input.to_ulong();
+
+  player.updateState(getState(fsm));
+};
+
+void GameState::updateAttackPhase(const int player_id, const int startup_frame,
+                                  const int active_frame, const int length) {
+  auto& player = players_[player_id];
+  auto& attack = melee_attack[player_id];
+  if (player.state_frame < startup_frame) {
+    player.attack_phase = AttackPhase::STARTUP;
+
+    auto progress = FIX{player.state_frame + 1} / FIX{startup_frame};
+    attack.width_ = static_cast<int>((progress * length));
+
+  } else if (player.state_frame >= startup_frame &&
+             player.state_frame < startup_frame + active_frame) {
+    player.attack_phase = AttackPhase::ACTIVE;
+
+  } else {
+    player.attack_phase = AttackPhase::RECOVERY;
+    attack.width_ = std::max<int>(0, 0.9 * attack.width_);
+  }
 }
 };  // namespace platformer

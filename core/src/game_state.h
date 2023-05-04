@@ -14,7 +14,7 @@ namespace platformer {
 
 class GameState {
   std::mutex mutex_;
-  PlayerLocomotionFSM fsms_;
+  std::vector<PlayerSM> fsms_;
 
   std::vector<VECTOR_2> left_top_mesh_;
 
@@ -37,14 +37,17 @@ class GameState {
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
 
-
   GameState getStateProjection();
   std::unique_lock<std::mutex> lock();
 
   GameState& operator=(const GameState&);
 
  private:
+  void resolveDamage(const int player_id);
   bool checkPlatform(const int player_id);
+  void updateAttackPhase(const int player_id, const int startup_frame,
+                         const int active_frame, const int length);
+  void updatePlayerState(const int player_id, const int player_input);
 };
 
 };      // namespace platformer
