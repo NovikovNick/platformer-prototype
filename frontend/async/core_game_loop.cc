@@ -57,7 +57,7 @@ void CoreGameLoop::operator()() {
     if (frame_ != frames.count()) {
       frame_ = frames.count();
       tick_->store(frame_);
-      gs_->update(p0_input_->load(), p1_input_->load(), 1);
+      gs_->update(p0_input_->load(), p1_input_->load());
 
       update_time =
           duration_cast<microseconds>(clock::now() - current_time).count();

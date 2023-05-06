@@ -34,7 +34,7 @@ int main() {
     checksum = fletcher32_checksum((short*)buf, length / 2);
     input1 = getRandomInput();
     input2 = getRandomInput();
-    gs->update(input1, input2, 1);
+    gs->update(input1, input2);
     p1 = gs->players_[0].state;
     p2 = gs->players_[1].state;
   }

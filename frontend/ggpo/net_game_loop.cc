@@ -97,7 +97,7 @@ bool __cdecl vw_advance_frame_callback(int) {
   // the game state instead of reading from the keyboard.
   ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * player_count,
                          &disconnect_flags);
-  game_state->update(inputs[0], inputs[1], 1);
+  game_state->update(inputs[0], inputs[1]);
   
   // Notify ggpo that we've moved forward exactly 1 frame.
   ggpo_advance_frame(ggpo);
@@ -255,7 +255,7 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
   cb.log_game_state = vw_log_game_state;
 
   const int num_players = 2;
-  const int frame_delay = 4;
+  const int frame_delay = 3;
   auto input_size = sizeof(int);
   const char *title = "platformer";
 
@@ -367,7 +367,7 @@ void NetGameLoop::operator()() {
           if (GGPO_SUCCEEDED(result)) {
             // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
             // the game by 1 frame using those inputs.
-            game_state->update(inputs[0], inputs[1], 1);
+            game_state->update(inputs[0], inputs[1]);
             status_->store(0);
 
             // update the checksums to display in the top of the window.  this

@@ -51,7 +51,7 @@ void GameLoop::operator()() {
 
       if (next_frame % frame_per_tick == 0) {
         tick_->fetch_add(1);
-        gs_->update(p0_input_->load(), p1_input_->load(), 1);
+        gs_->update(p0_input_->load(), p1_input_->load());
         t2 = t1;
       }
     }

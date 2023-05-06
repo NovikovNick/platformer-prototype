@@ -9,15 +9,15 @@
 
 #include "game_object.h"
 #include "player.h"
+#include <game_state_service.h>
 
 namespace platformer {
 
 class GameState {
   std::mutex mutex_;
   std::vector<PlayerSM> fsms_;
-
   std::vector<VECTOR_2> left_top_mesh_;
-
+  GameStateService state_service_;
  public:
   int frame;
   std::vector<Player> players_;
@@ -33,7 +33,7 @@ class GameState {
   void setPlayerPosition(const int player_id, const int x, const int y);
   void refreshStateMachine();
 
-  void update(const int p0_input, const int p1_input, const int frames);
+  void update(const int p0_input, const int p1_input);
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
 

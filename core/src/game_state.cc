@@ -1,5 +1,6 @@
 #include "game_state.h"
 
+#include <game_state_service.h>
 #include <util.h>
 
 #include <bitset>
@@ -44,7 +45,8 @@ GameState::GameState()
       melee_attack(std::vector<GameObject>{}),
       platforms_(std::vector<GameObject>{}),
       left_top_mesh_(
-          {{kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}}) {
+          {{kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}}),
+      state_service_({}) {
   players_.emplace_back();
   players_.emplace_back();
 
@@ -84,8 +86,7 @@ void GameState::refreshStateMachine() {
   fsms_.emplace_back(players_[1]).process_event(InputNone{});
 }
 
-void GameState::update(const int p0_input, const int p1_input,
-                       const int frames) {
+void GameState::update(const int p0_input, const int p1_input) {
   int player_count = 2;
   std::scoped_lock lock{mutex_};
   ++frame;
@@ -109,14 +110,13 @@ void GameState::update(const int p0_input, const int p1_input,
     updatePlayerState(player_id, player_id == 0 ? p0_input : p1_input);
 
     // 2. update input
-    if (player.is(PlayerState::BLOCK)) vel_x = kZero;
+    auto state_data = state_service_.get(player.state);
+    if (!state_data.moveable) vel_x = kZero;
 
     if (player.is(PlayerState::SQUAT) || player.is(PlayerState::LOW_ATTACK) ||
         player.is(PlayerState::SQUAT_BLOCK)) {
-      vel_x = kZero;
-      if (prev_state != PlayerState::SQUAT) {
-        player.obj.height_ = 64;
-      }
+      player.obj.height_ = 64;
+
     } else if (prev_state == PlayerState::SQUAT ||
                prev_state == PlayerState::LOW_ATTACK ||
                prev_state == PlayerState::SQUAT_BLOCK) {
@@ -127,8 +127,6 @@ void GameState::update(const int p0_input, const int p1_input,
     if (!player.on_ground) vel_y += FIX{kAccelerationGravity};
 
     if (player.is(PlayerState::OVERHEAD_ATTACK)) {
-      vel_x = kZero;
-
       updateAttackPhase(player_id, 14, 2, 160);
 
       auto& attack = melee_attack[player_id];
@@ -138,8 +136,6 @@ void GameState::update(const int p0_input, const int p1_input,
       attack.position.y() = player.obj.position.y();
 
     } else if (player.is(PlayerState::MID_ATTACK)) {
-      vel_x = kZero;
-
       updateAttackPhase(player_id, 7, 2, 96);
 
       auto& attack = melee_attack[player_id];
@@ -148,8 +144,6 @@ void GameState::update(const int p0_input, const int p1_input,
                             player.obj.position.x() + player.obj.width_ / 2;
       attack.position.y() = player.obj.position.y();
     } else if (player.is(PlayerState::LOW_ATTACK)) {
-      vel_x = kZero;
-
       updateAttackPhase(player_id, 14, 2, 128);
 
       auto& attack = melee_attack[player_id];
@@ -175,7 +169,7 @@ void GameState::update(const int p0_input, const int p1_input,
     vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
 
     // 3. apply
-    player.obj.position += player.obj.velocity * FIX{frames};
+    player.obj.position += player.obj.velocity;
 
     // 4. resolve collisions
     for (const auto& platform : platforms_) {
@@ -244,20 +238,14 @@ bool GameState::checkPlatform(const int player_id) {
 void GameState::resolveDamage(const int player_id) {
   auto& player = players_[player_id];
   auto state = player.state;
-  // player.on_damage = false;
-
-  std::vector<std::pair<int, int>> data(64);
-  data[static_cast<int>(PlayerState::LOW_ATTACK)] = {10, 2};
-  data[static_cast<int>(PlayerState::MID_ATTACK)] = {2, 1};
-  data[static_cast<int>(PlayerState::OVERHEAD_ATTACK)] = {10, 2};
 
   for (int i = 0; i < kPlayerCount; ++i) {
     if (player_id == i) continue;
     auto& enemy = players_[i];
+    auto [_, is_attack, damage, chip_damage] = state_service_.get(enemy.state);
 
-    if (enemy.attack_phase == AttackPhase::ACTIVE) {
+    if (is_attack) {
       auto [x, y] = isIntersect(melee_attack[i], player.obj);
-      auto [damage, chip_damage] = data[static_cast<int>(enemy.state)];
 
       if (x != kZero && y != kZero) {
         if (state == PlayerState::BLOCK) {
