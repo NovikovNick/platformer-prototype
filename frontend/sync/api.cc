@@ -18,12 +18,12 @@ void Init(const Location location) {
   // args.local = location.is_1st_player;
   gs = {};
   gs.setPlayerPosition(0, location.position_1st_player.x,
-                        location.position_1st_player.y);
+                       location.position_1st_player.y);
   gs.setPlayerPosition(1, location.position_2nd_player.x,
-                        location.position_2nd_player.y);
+                       location.position_2nd_player.y);
   gs.removeAllPlatforms();
   for (int i = 0; i < location.platforms_count; ++i) {
-    auto& it = location.platforms[i];
+    auto &it = location.platforms[i];
     gs.addPlatform(it.width, it.height, it.position.x, it.position.y);
   }
 };
@@ -34,9 +34,7 @@ Endpoint GetPublicEndpoint(const int local_port) {
 
 void RegisterPeer(const Endpoint remote_endpoint){};
 
-void StartGame() {
-  running = true;
-};
+void StartGame() { running = true; };
 
 void StopGame() { running = false; };
 
@@ -49,11 +47,12 @@ void Update(const Input input) {
   input_bitset[kInputDown] = input.downPressed;
   input_bitset[kInputLKM] = input.leftMouseClicked;
   input_bitset[kInputRKM] = input.rightMouseClicked;
-  gs.update(input_bitset.to_ullong(), 0, 1);
+  gs.update(input_bitset.to_ullong(), 0);
 };
 
-int GetState(uint8_t* buf) {
-  return platformer::Serializer::serialize(gs, buf);
+void GetState(uint8_t *buf, int *length, float *dx) {
+  *length = platformer::Serializer::serialize(gs, buf);
+  *dx = 1;
 }
 
 GameStatus GetStatus() {

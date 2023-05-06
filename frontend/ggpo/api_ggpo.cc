@@ -98,8 +98,9 @@ void Update(const Input input) {
   (args.local ? p0_input : p1_input)->store(input_bitset.to_ullong());
 };
 
-int GetState(uint8_t* buf) {
-  return platformer::Serializer::serialize(gs->getStateProjection(), buf);
+void GetState(uint8_t* buf, int* length, float* dx) {
+  *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
+  *dx = 1;
 }
 
 GameStatus GetStatus() {

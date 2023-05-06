@@ -76,7 +76,8 @@ int main(int argc, char* argv[]) {
 
   ser::GameState gs;
   Input input{false, false, false, false, false, false};
-
+  int length;
+  float dx;
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
     info.update(tick_index, gs.frame());
@@ -87,7 +88,7 @@ int main(int argc, char* argv[]) {
     Update(input);
 
     // write game state to buffer
-    int length = GetState(ctx.game_state_buf);
+    GetState(ctx.game_state_buf, &length, &dx);
     info.update(ser_index, length);
 
     // deserialize game state from buffer
@@ -108,14 +109,15 @@ int main(int argc, char* argv[]) {
       info.update(p2_health_index, gs.players()[1].current_health(),
                   gs.players()[1].max_health());
 
-      platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
+      /*platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
                         toString(p.attack_phase()), p.state_frame());
       platformer::debug("pos[{:4d},{:4d}], ", pos_x, pos_y);
-      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);
+      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);*/
     }
 
     // render
     scena.update(gs);
+    scena.update(dx);
     window.clear(kBGColor);
     window.draw(scena);
     window.draw(info);

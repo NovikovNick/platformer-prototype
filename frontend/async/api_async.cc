@@ -1,5 +1,6 @@
 #include <schema.pb.h>
 #include <serializer.h>
+#include <util.h>
 
 #include <bitset>
 #include <chrono>
@@ -9,11 +10,11 @@
 #include "../api.h"
 #include "core_game_loop.h"
 #include "game_state.h"
-#include "util.h"
 
 namespace {
 auto gs = std::make_shared<platformer::GameState>();
 auto tick = std::make_shared<std::atomic<int>>(0);
+auto frame_started_at = std::make_shared<std::atomic<uint64_t>>(0);
 auto p0_input = std::make_shared<std::atomic<int>>(0);
 auto p1_input = std::make_shared<std::atomic<int>>(0);
 
@@ -32,7 +33,7 @@ void Init(const Location location) {
                         location.position_2nd_player.y);
   gs->removeAllPlatforms();
   for (int i = 0; i < location.platforms_count; ++i) {
-    auto& it = location.platforms[i];
+    auto &it = location.platforms[i];
     gs->addPlatform(it.width, it.height, it.position.x, it.position.y);
   }
 };
@@ -50,7 +51,8 @@ void StartGame() {
     stopped = false;
 
     std::thread([] {
-      platformer::CoreGameLoop loop(gs, tick, p0_input, p1_input, running);
+      platformer::CoreGameLoop loop(gs, tick, frame_started_at, p0_input,
+                                    p1_input, running);
       loop();
       stopped = true;
     }).detach();
@@ -74,8 +76,24 @@ void Update(const Input input) {
   p0_input->store(input_bitset.to_ullong());
 };
 
-int GetState(uint8_t* buf) {
-  return platformer::Serializer::serialize(gs->getStateProjection(), buf);
+void GetState(uint8_t *buf, int *length, float *dx) {
+  *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
+
+  using namespace std::chrono;
+  auto now = duration_cast<microseconds>(
+                 high_resolution_clock::now().time_since_epoch())
+                 .count();
+  auto last_frame_at = frame_started_at->load();
+
+  float frame =
+      duration_cast<microseconds>(duration<uint64_t, std::ratio<1, 60>>(1))
+          .count();
+  float elapsed_after_last_frame = now - last_frame_at;
+  *dx = (now - last_frame_at) / frame;
+  platformer::debug(
+      "frame = {}, last_frame_at = {}, now = {}, dx = {:.2f}, "
+      "elapsed_after_last_frame= {} \n",
+      frame, last_frame_at, now, *dx, elapsed_after_last_frame);
 }
 
 GameStatus GetStatus() {

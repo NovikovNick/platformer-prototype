@@ -29,20 +29,37 @@ void Scene::init(const ShowcaseContext ctx) {
 }
 
 void Scene::update(const ser::GameState& gs) {
+  if (curr_game_state.frame() != gs.frame()) {
+    prev_game_state = std::move(curr_game_state);
+    curr_game_state = gs;
+  }
+}
+void Scene::update(const float dx) {
+  auto& gs = curr_game_state;
+  if (prev_game_state.players_size() <= 0) return;
+
   int offset = 0;
   for (int i = 0; i < gs.players_size() + offset; ++i) {
-    auto& player = gs.players()[i - offset];
-    shapes_[i].update(player.obj().position().x(), player.obj().position().y());
-    shapes_[i].updateSize(player.obj().width(), player.obj().height());
+    auto& prev_player = prev_game_state.players()[i - offset];
+    auto& curr_player = curr_game_state.players()[i - offset];
+
+    shapes_[i].update(std::lerp(prev_player.obj().position().x(),
+                                curr_player.obj().position().x(), dx),
+                      std::lerp(prev_player.obj().position().y(),
+                                curr_player.obj().position().y(), dx));
+
+    shapes_[i].updateSize(prev_player.obj().width(),
+                          prev_player.obj().height());
     shapes_[i].update(1);
 
-    shapes_[i].update(player.on_damage() ? sf::Color::Red : sf::Color::White);
+    shapes_[i].update(prev_player.on_damage() ? sf::Color::Red
+                                              : sf::Color::White);
 
-    if (player.state() == ser::PlayerState::BLOCK)
+    if (prev_player.state() == ser::PlayerState::BLOCK)
       shapes_[i].update(sf::Color::Yellow);
-    if (player.state() == ser::PlayerState::SQUAT_BLOCK)
+    if (prev_player.state() == ser::PlayerState::SQUAT_BLOCK)
       shapes_[i].update(sf::Color::Yellow);
-    if (player.state() == ser::PlayerState::DEATH) {
+    if (prev_player.state() == ser::PlayerState::DEATH) {
       uint8_t red = 255 * std::cos(gs.frame() / 10);
       uint8_t green = 255 * std::sin(gs.frame() / 5);
       uint8_t blue = 255 * std::sin(gs.frame() / 15);
