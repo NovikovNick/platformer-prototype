@@ -79,5 +79,8 @@ void CoreGameLoop::operator()() {
     }
   }
   timeEndPeriod(1);
+}
+uint64_t CoreGameLoop::getMicrosecondsInOneFrame() {
+  return duration_cast<microseconds>(frame{1}).count();
 };
 };  // namespace platformer

@@ -118,7 +118,6 @@ struct player_locomotion_table {
         idle_s + input_down_lkm[onGround] = low_attack_s,
         idle_s + input_backward_lkm[onGround] = overhead_attack_s,
         idle_s + none[inAir] = falling_s,
-        idle_s + none[OnDamage{true}] = hit_stun_s,
 
         hit_stun_s + none[FrameLessOrEq{kHitStun - 1}] = hit_stun_s,
         hit_stun_s + none[FrameGreat{kHitStun - 1}] = idle_s,
@@ -129,37 +128,30 @@ struct player_locomotion_table {
         block_stun_s + none[FrameLessOrEq{kBlockStun - 1}] = block_stun_s,
         block_stun_s + none[FrameGreat{kBlockStun - 1}] = idle_s,
 
-        squat_block_s + none[OnDamage{true}] = squat_block_stun_s,
         squat_block_s + none[onGround] = idle_s,
 
-        block_s + none[OnDamage{true}] = block_stun_s,
         block_s + none[onGround] = idle_s,
 
         squat_s + none[onGround] = idle_s,
         squat_s + input_down_rkm[onGround] = squat_block_s,
         squat_s + input_lkm[onGround] = low_attack_s,
         squat_s + input_down_lkm[onGround] = low_attack_s,
-        squat_s + none[OnDamage{true}] = hit_stun_s,
 
         landing_s + none[onGround && FrameLessOrEq{2}] = idle_s,
         landing_s + none[onGround && FrameGreat{2}] = idle_s,
         landing_s + none[inAir] = falling_s,
-        landing_s + none[OnDamage{true}] = hit_stun_s,
 
         mid_attack_s + none[onGround && FrameLessOrEq{kMidAttack - 1}] = mid_attack_s,
         mid_attack_s + none[onGround && FrameGreat{kMidAttack - 1}] = idle_s,
         mid_attack_s + none[inAir] = falling_s,
-        mid_attack_s + none[OnDamage{true}] = hit_stun_s,
 
         low_attack_s + none[onGround && FrameLessOrEq{kLowAttack - 1}] = low_attack_s,
         low_attack_s + none[onGround && FrameGreat{kLowAttack - 1}] = idle_s,
         low_attack_s + none[inAir] = falling_s,
-        low_attack_s + none[OnDamage{true}] = hit_stun_s,
         
         overhead_attack_s + none[onGround && FrameLessOrEq{kOverHeadAttack - 1}] = overhead_attack_s,
         overhead_attack_s + none[onGround && FrameGreat{kOverHeadAttack - 1}] = idle_s,
         overhead_attack_s + none[inAir] = falling_s,
-        overhead_attack_s + none[OnDamage{true}] = hit_stun_s,
 
         run_s + none[onGround] = idle_s, 
         run_s + input_left[onGround] = run_s,
@@ -172,15 +164,13 @@ struct player_locomotion_table {
         run_s + input_down_lkm[onGround] = low_attack_s,
         run_s + input_backward_lkm[onGround] = overhead_attack_s,
         run_s + none[inAir] = falling_s,
-        run_s + none[OnDamage{true}] = hit_stun_s,
 
         jump_s + none[inAir && FrameLessOrEq{kJump - 1}] = jump_s,
         jump_s + none[inAir && FrameGreat{kJump - 1}] = falling_s,
         jump_s + none[onGround] = landing_s,
-        jump_s + none[OnDamage{true}] = hit_stun_s,
 
         falling_s + none[onGround] = landing_s,
-        falling_s + none[OnDamage{true}] = hit_stun_s);
+        falling_s + input_up[inAir && FrameLessOrEq{2}] = jump_s);
   }
 };
 
@@ -199,7 +189,9 @@ PlayerState getState(const auto& sm) {
   if (sm.is(state<squat>)) return PlayerState::SQUAT;
   if (sm.is(state<block>)) return PlayerState::BLOCK;
   if (sm.is(state<squat_block>)) return PlayerState::SQUAT_BLOCK;
-
+  if (sm.is(state<hit_stun>)) return PlayerState::HIT_STUN;
+  if (sm.is(state<block_stun>)) return PlayerState::BLOCK_STUN;
+  if (sm.is(state<squat_block_stun>)) return PlayerState::SQUAT_BLOCK_STUN;
   return PlayerState::DEATH;
 }
 };      // namespace platformer

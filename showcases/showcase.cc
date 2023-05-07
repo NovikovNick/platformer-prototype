@@ -109,10 +109,11 @@ int main(int argc, char* argv[]) {
       info.update(p2_health_index, gs.players()[1].current_health(),
                   gs.players()[1].max_health());
 
-      /*platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
+      platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
                         toString(p.attack_phase()), p.state_frame());
       platformer::debug("pos[{:4d},{:4d}], ", pos_x, pos_y);
-      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);*/
+      platformer::debug("{:8s}, ", p.on_damage() ? "damage" : "");
+      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);
     }
 
     // render
@@ -144,7 +145,7 @@ void handleKeyboardInput(sf::RenderWindow& window, Input& input,
         break;
       case sf::Event::KeyPressed:
         switch (event.key.code) {
-            break;
+          break;
           case sf::Keyboard::A:
             input.leftPressed = true;
             break;

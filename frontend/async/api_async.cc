@@ -85,15 +85,13 @@ void GetState(uint8_t *buf, int *length, float *dx) {
                  .count();
   auto last_frame_at = frame_started_at->load();
 
-  float frame =
-      duration_cast<microseconds>(duration<uint64_t, std::ratio<1, 60>>(1))
-          .count();
+  float frame = platformer::CoreGameLoop::getMicrosecondsInOneFrame();
   float elapsed_after_last_frame = now - last_frame_at;
   *dx = (now - last_frame_at) / frame;
-  platformer::debug(
+  /*platformer::debug(
       "frame = {}, last_frame_at = {}, now = {}, dx = {:.2f}, "
       "elapsed_after_last_frame= {} \n",
-      frame, last_frame_at, now, *dx, elapsed_after_last_frame);
+      frame, last_frame_at, now, *dx, elapsed_after_last_frame);*/
 }
 
 GameStatus GetStatus() {

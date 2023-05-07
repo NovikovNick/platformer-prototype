@@ -1,41 +1,11 @@
 #include "game_state.h"
 
+#include <collision_service.h>
 #include <game_state_service.h>
+#include <locomotion_fsm.h>
 #include <util.h>
 
 #include <bitset>
-#include <fpm/math.hpp>
-
-#include "game_state.h"
-
-namespace {
-
-inline VECTOR_2 normal(const VECTOR_2& val) {
-  if (val.x() == kZero && val.y() == kZero) return {kZero, kZero};
-  return val / fpm::sqrt(fpm::pow(val.x(), 2) + fpm::pow(val.y(), 2));
-}
-
-std::pair<FIX, FIX> isIntersect(const platformer::GameObject& lhs,
-                                const platformer::GameObject& rhs) {
-  auto [lhs_min_x, lhs_max_x] = lhs.getProjectionMinMax(0);
-  auto [rhs_min_x, rhs_max_x] = rhs.getProjectionMinMax(0);
-  auto [lhs_min_y, lhs_max_y] = lhs.getProjectionMinMax(1);
-  auto [rhs_min_y, rhs_max_y] = rhs.getProjectionMinMax(1);
-
-  // rhs_max_y >= lhs_min_y && rhs_min_y <= lhs_max_y;
-  if (rhs_max_x - lhs_min_x < kZero) return {kZero, kZero};
-  if (lhs_max_x - rhs_min_x < kZero) return {kZero, kZero};
-  if (rhs_max_y - lhs_min_y < kZero) return {kZero, kZero};
-  if (lhs_max_y - rhs_min_y < kZero) return {kZero, kZero};
-
-  FIX diff_x = std::min(rhs_max_x - lhs_min_x, lhs_max_x - rhs_min_x);
-  FIX diff_y = std::min(rhs_max_y - lhs_min_y, lhs_max_y - rhs_min_y);
-
-  if (rhs_max_x > lhs_max_x) diff_x *= -1;
-  if (rhs_max_y > lhs_max_y) diff_y *= -1;
-  return {diff_x, diff_y};
-}
-}  // namespace
 
 namespace platformer {
 
@@ -52,9 +22,6 @@ GameState::GameState()
 
   melee_attack.emplace_back(0, 0, left_top_mesh_);
   melee_attack.emplace_back(0, 0, left_top_mesh_);
-
-  fsms_.emplace_back(players_[0]).process_event(InputNone{});
-  fsms_.emplace_back(players_[1]).process_event(InputNone{});
 }
 
 GameState::GameState(GameState& src) {
@@ -63,6 +30,47 @@ GameState::GameState(GameState& src) {
   melee_attack = src.melee_attack;
   frame = src.frame;
 }
+
+// UPDATE METHOD
+
+void GameState::update(const int p0_input, const int p1_input) {
+  int player_count = 2;
+  std::scoped_lock lock{mutex_};
+  ++frame;
+
+  for (int player_id = 0; player_id < player_count; ++player_id) {
+    auto& player = players_[player_id];
+    // 1. calculate forces
+    calculateVelocity(player_id, player_id == 0 ? p0_input : p1_input);
+
+    // 2. apply forces
+    player.obj.position += player.obj.velocity;
+
+    // 3. resolve collisions
+    for (int enemy_id = 0; enemy_id < player_count; ++enemy_id) {
+      if (enemy_id == player_id) continue;
+      CollistionService::resolveCollision(player.obj, players_[enemy_id].obj);
+    }
+    for (const auto& it : platforms_)
+      CollistionService::resolveCollision(player.obj, it);
+
+    player.on_ground = checkPlatform(player_id);
+
+    auto& vel_y = player.obj.velocity.y();
+    if (player.on_ground && vel_y > kZero) vel_y = kZero;
+  }
+
+  // 4. resolve player direction
+  auto& p1 = players_[0];
+  auto& p2 = players_[1];
+  p1.left_direction = p1.obj.position.x() > p2.obj.position.x();
+  p2.left_direction = !(p1.left_direction);
+
+  // 5. resolve player damage
+  for (int id = 0; id < kPlayerCount; ++id) resolveDamage(id);
+}
+
+// SETUP LOCATION
 
 void GameState::removeAllPlatforms() {
   std::scoped_lock lock{mutex_};
@@ -80,124 +88,12 @@ void GameState::setPlayerPosition(const int id, const int x, const int y) {
   players_[id].obj.position = {FIX(x), FIX(y)};
 }
 
-void GameState::refreshStateMachine() {
-  fsms_.clear();
-  fsms_.emplace_back(players_[0]).process_event(InputNone{});
-  fsms_.emplace_back(players_[1]).process_event(InputNone{});
-}
-
-void GameState::update(const int p0_input, const int p1_input) {
-  int player_count = 2;
-  std::scoped_lock lock{mutex_};
-  ++frame;
-
-  for (int player_id = 0; player_id < player_count; ++player_id) {
-    auto& player = players_[player_id];
-    if (player.state == PlayerState::DEATH) {
-      melee_attack[player_id].height_ = melee_attack[player_id].width_ = 0;
-      continue;
-    }
-
-    auto& vel_x = player.obj.velocity.x();
-    auto& vel_y = player.obj.velocity.y();
-    std::bitset<6> input(player_id == 0 ? p0_input : p1_input);
-
-    if (input[kInputLeft]) vel_x -= FIX{kAccelerationX};
-    if (input[kInputRight]) vel_x += FIX{kAccelerationX};
-
-    auto prev_state = player.state;
-    // 1. calculate player state and frame
-    updatePlayerState(player_id, player_id == 0 ? p0_input : p1_input);
-
-    // 2. update input
-    auto state_data = state_service_.get(player.state);
-    if (!state_data.moveable) vel_x = kZero;
-
-    if (player.is(PlayerState::SQUAT) || player.is(PlayerState::LOW_ATTACK) ||
-        player.is(PlayerState::SQUAT_BLOCK)) {
-      player.obj.height_ = 64;
-
-    } else if (prev_state == PlayerState::SQUAT ||
-               prev_state == PlayerState::LOW_ATTACK ||
-               prev_state == PlayerState::SQUAT_BLOCK) {
-      player.obj.height_ = 128;
-      player.obj.position.y() -= 64;
-    }
-
-    if (!player.on_ground) vel_y += FIX{kAccelerationGravity};
-
-    if (player.is(PlayerState::OVERHEAD_ATTACK)) {
-      updateAttackPhase(player_id, 14, 2, 160);
-
-      auto& attack = melee_attack[player_id];
-      attack.height_ = player.obj.height_;
-      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
-                            player.obj.position.x() + player.obj.width_ / 2;
-      attack.position.y() = player.obj.position.y();
-
-    } else if (player.is(PlayerState::MID_ATTACK)) {
-      updateAttackPhase(player_id, 7, 2, 96);
-
-      auto& attack = melee_attack[player_id];
-      attack.height_ = player.obj.height_ / 3;
-      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
-                            player.obj.position.x() + player.obj.width_ / 2;
-      attack.position.y() = player.obj.position.y();
-    } else if (player.is(PlayerState::LOW_ATTACK)) {
-      updateAttackPhase(player_id, 14, 2, 128);
-
-      auto& attack = melee_attack[player_id];
-      attack.height_ = player.obj.height_;
-      attack.position.x() = (player.left_direction ? -attack.width_ : 0) +
-                            player.obj.position.x() + player.obj.width_ / 2;
-      attack.position.y() = player.obj.position.y();
-    } else {
-      player.attack_phase = AttackPhase::NONE;
-      melee_attack[player_id].width_ = 0;
-      melee_attack[player_id].height_ = 0;
-    }
-
-    if (player.is(PlayerState::JUMP))
-      vel_y = -kJumpDelta * (kJump - player.state_frame);
-
-    if (!input[kInputLeft] && !input[kInputRight]) {
-      vel_x *= player.on_ground ? FIX{0.5} : FIX{0.9};
-      if (static_cast<int>(vel_x) == 0) vel_x = kZero;
-    }
-
-    vel_x = std::clamp(vel_x, FIX{-kMaxVelocityX}, FIX{kMaxVelocityX});
-    vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
-
-    // 3. apply
-    player.obj.position += player.obj.velocity;
-
-    // 4. resolve collisions
-    for (const auto& platform : platforms_) {
-      auto [intersection_x, intersection_y] = isIntersect(player.obj, platform);
-      if (intersection_x != kZero && intersection_y != kZero) {
-        int x = std::abs(static_cast<int>(intersection_x));
-        int y = std::abs(static_cast<int>(intersection_y));
-        if (x <= y) player.obj.position.x() += intersection_x;
-        if (x >= y) player.obj.position.y() += intersection_y;
-      }
-    }
-    player.on_ground = checkPlatform(player_id);
-    if (player.on_ground && vel_y > kZero) vel_y = kZero;
-  }
-
-  // set player direction
-  players_[0].left_direction =
-      players_[0].obj.position.x() > players_[1].obj.position.x();
-  players_[1].left_direction =
-      players_[1].obj.position.x() > players_[0].obj.position.x();
-
-  for (int id = 0; id < kPlayerCount; ++id) resolveDamage(id);
-}
-
 GameState GameState::getStateProjection() {
   std::scoped_lock lock{mutex_};
   return *this;
 };
+
+// CONVINIENCE
 
 GameObject GameState::getPlayer(const int player_id) {
   std::scoped_lock lock{mutex_};
@@ -242,10 +138,10 @@ void GameState::resolveDamage(const int player_id) {
   for (int i = 0; i < kPlayerCount; ++i) {
     if (player_id == i) continue;
     auto& enemy = players_[i];
-    auto [_, is_attack, damage, chip_damage] = state_service_.get(enemy.state);
 
-    if (is_attack) {
-      auto [x, y] = isIntersect(melee_attack[i], player.obj);
+    if (state_service_.isAttack(enemy.state)) {
+      auto [damage, chip_damage] = state_service_.getFrameData(enemy.state);
+      auto [x, y] = CollistionService::isIntersect(melee_attack[i], player.obj);
 
       if (x != kZero && y != kZero) {
         if (state == PlayerState::BLOCK) {
@@ -254,7 +150,6 @@ void GameState::resolveDamage(const int player_id) {
 
         } else if (state == PlayerState::SQUAT_BLOCK) {
           state = PlayerState::SQUAT_BLOCK_STUN;
-
           if (!player.on_damage) player.current_health -= chip_damage;
 
         } else {
@@ -266,22 +161,70 @@ void GameState::resolveDamage(const int player_id) {
         player.on_damage = false;
       }
 
-      if (player.current_health <= 0) player.state = PlayerState::DEATH;
+      if (player.current_health <= 0) state = PlayerState::DEATH;
+
     } else {
       player.on_damage = false;
     }
+
+    player.updateState(state);
   }
 }
+
+void GameState::calculateVelocity(const int player_id, const int player_input) {
+  auto& player = players_[player_id];
+  auto& vel_x = player.obj.velocity.x();
+  auto& vel_y = player.obj.velocity.y();
+  auto prev_state = player.state;
+
+  if (!player.on_ground) vel_y += FIX{kAccelerationGravity};
+
+  if (prev_state == PlayerState::DEATH) {
+    melee_attack[player_id].height_ = melee_attack[player_id].width_ = 0;
+  } else {
+    std::bitset<6> input(player_input);
+    if (input[kInputLeft]) vel_x -= FIX{kAccelerationX};
+    if (input[kInputRight]) vel_x += FIX{kAccelerationX};
+
+    // 1. calculate player state and frame
+    updatePlayerState(player_id, player_input);
+
+    // 2. update input
+    auto curr_state_data = state_service_.getStateData(player.state);
+    auto prev_state_date = state_service_.getStateData(prev_state);
+    if (!curr_state_data.moveable) vel_x = kZero;
+
+    curr_state_data.on_state(player, melee_attack[player_id]);
+
+    if (player.state != prev_state)
+      prev_state_date.on_state_out(player, melee_attack[player_id]);
+
+    if (curr_state_data.is_duck) {
+      player.obj.height_ = 64;
+    } else if (!curr_state_data.is_duck && prev_state_date.is_duck) {
+      player.obj.height_ = 128;
+      player.obj.position.y() -= 64;
+    }
+
+    if (!input[kInputLeft] && !input[kInputRight]) {
+      vel_x *= player.on_ground ? FIX{0.5} : FIX{0.9};
+      if (static_cast<int>(vel_x) == 0) vel_x = kZero;
+    }
+    vel_x = std::clamp(vel_x, FIX{-kMaxVelocityX}, FIX{kMaxVelocityX});
+  }
+  vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
+};
 
 void GameState::updatePlayerState(const int player_id, const int player_input) {
   auto& player = players_[player_id];
 
-  auto& fsm = fsms_[player_id];
+  auto fsm = PlayerSM{player};
+  fsm.process_event(InputNone{});  // !
+  fsm.process_event(InputNone{});
+
   std::bitset<6> prev_input(player.prev_input);
   std::bitset<6> input(player_input);
   ++player.state_frame;
-
-  fsm.process_event(InputNone{});  // !
 
   if (input[kInputDown]) fsm.process_event(InputDown{});
   if (input[kInputLeft]) fsm.process_event(InputLeft{});
@@ -312,24 +255,4 @@ void GameState::updatePlayerState(const int player_id, const int player_input) {
 
   player.updateState(getState(fsm));
 };
-
-void GameState::updateAttackPhase(const int player_id, const int startup_frame,
-                                  const int active_frame, const int length) {
-  auto& player = players_[player_id];
-  auto& attack = melee_attack[player_id];
-  if (player.state_frame < startup_frame) {
-    player.attack_phase = AttackPhase::STARTUP;
-
-    auto progress = FIX{player.state_frame + 1} / FIX{startup_frame};
-    attack.width_ = static_cast<int>((progress * length));
-
-  } else if (player.state_frame >= startup_frame &&
-             player.state_frame < startup_frame + active_frame) {
-    player.attack_phase = AttackPhase::ACTIVE;
-
-  } else {
-    player.attack_phase = AttackPhase::RECOVERY;
-    attack.width_ = std::max<int>(0, 0.9 * attack.width_);
-  }
-}
 };  // namespace platformer

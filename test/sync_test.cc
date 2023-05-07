@@ -48,7 +48,7 @@ int main() {
     Serializer::deserialize(gs, buf, l);
     for (int j = i + 1; j < n; ++j) {
       // Act: Perform advance frame operation
-      gs->update(states[j - 1].input1, states[j - 1].input2, 1);
+      gs->update(states[j - 1].input1, states[j - 1].input2);
       if (!Serializer::serialize(gs, &out, &l)) {
         debug("Unable to serialize from {} to {}!\n", i, j);
         return 1;

@@ -22,6 +22,8 @@ class CoreGameLoop {
                std::shared_ptr<std::atomic<bool>> running);
 
   void operator()();
+
+  static uint64_t getMicrosecondsInOneFrame();
 };
 
 };      // namespace platformer

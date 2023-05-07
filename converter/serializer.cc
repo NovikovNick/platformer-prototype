@@ -211,9 +211,6 @@ bool Serializer::deserialize(std::shared_ptr<GameState> gs,
     gs->melee_attack.push_back(convert(it));
 
   gs->frame = serialized.frame();
-
-  gs->refreshStateMachine();
-
   return res;
 }
 

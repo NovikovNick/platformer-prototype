@@ -1,6 +1,5 @@
 #ifndef PLATFORMER_GAME_STATE_H
 #define PLATFORMER_GAME_STATE_H
-#include <locomotion_fsm.h>
 
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
@@ -15,7 +14,6 @@ namespace platformer {
 
 class GameState {
   std::mutex mutex_;
-  std::vector<PlayerSM> fsms_;
   std::vector<VECTOR_2> left_top_mesh_;
   GameStateService state_service_;
  public:
@@ -26,14 +24,19 @@ class GameState {
 
   GameState();
   GameState(GameState& src);
+  
+  /// <summary>
+  /// method to update all game state
+  /// </summary>
+  /// <param name="p0_input">player 1 input</param>
+  /// <param name="p1_input">player 2 input</param>
+  void update(const int p0_input, const int p1_input);
 
   // setup location
   void removeAllPlatforms();
   void addPlatform(const int width, const int height, const int x, const int y);
   void setPlayerPosition(const int player_id, const int x, const int y);
-  void refreshStateMachine();
-
-  void update(const int p0_input, const int p1_input);
+  
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
 
@@ -43,11 +46,10 @@ class GameState {
   GameState& operator=(const GameState&);
 
  private:
-  void resolveDamage(const int player_id);
-  bool checkPlatform(const int player_id);
-  void updateAttackPhase(const int player_id, const int startup_frame,
-                         const int active_frame, const int length);
+  void calculateVelocity(const int player_id, const int player_input);
   void updatePlayerState(const int player_id, const int player_input);
+  bool checkPlatform(const int player_id);
+  void resolveDamage(const int player_id);
 };
 
 };      // namespace platformer
