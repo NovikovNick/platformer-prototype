@@ -14,7 +14,8 @@ class NetGameLoop {
   std::shared_ptr<std::atomic<bool>> running_;
 
  public:
-  NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
+  NetGameLoop(InputArgs args,
+              std::shared_ptr<GameState> gs,
               std::shared_ptr<std::atomic<int>> tick,
               std::shared_ptr<std::atomic<int>> p0_input,
               std::shared_ptr<std::atomic<int>> p1_input,

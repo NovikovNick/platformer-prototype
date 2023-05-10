@@ -13,12 +13,12 @@ using namespace std::chrono;
 using clock = high_resolution_clock;
 using frame = duration<uint64_t, std::ratio<1, 60>>;
 
-CoreGameLoop::CoreGameLoop(
-    std::shared_ptr<GameState> gs, std::shared_ptr<std::atomic<int>> tick,
-    std::shared_ptr<std::atomic<uint64_t>> frame_started_at,
-    std::shared_ptr<std::atomic<int>> p0_input,
-    std::shared_ptr<std::atomic<int>> p1_input,
-    std::shared_ptr<std::atomic<bool>> running)
+CoreGameLoop::CoreGameLoop(std::shared_ptr<GameState> gs,
+                           std::shared_ptr<std::atomic<int>> tick,
+                           std::shared_ptr<std::atomic<uint64_t>> frame_started_at,
+                           std::shared_ptr<std::atomic<int>> p0_input,
+                           std::shared_ptr<std::atomic<int>> p1_input,
+                           std::shared_ptr<std::atomic<bool>> running)
     : gs_(gs),
       frame_(0 - 1),
       tick_(tick),
@@ -66,8 +66,7 @@ void CoreGameLoop::operator()() {
       tick_->store(frame_);
       gs_->update(p0_input_->load(), p1_input_->load());
 
-      update_time =
-          duration_cast<microseconds>(clock::now() - current_time).count();
+      update_time = duration_cast<microseconds>(clock::now() - current_time).count();
       sleep_time =
           std::ceil((frame_time - update_time - frame_startup_offset) / 1000);
 

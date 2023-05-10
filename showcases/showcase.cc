@@ -12,7 +12,8 @@
 #include "ui/showcase_hud.h"
 #include "util/util.h"
 
-void handleKeyboardInput(sf::RenderWindow& window, Input& input,
+void handleKeyboardInput(sf::RenderWindow& window,
+                         Input& input,
                          platformer::ShowcaseCallback& cb,
                          platformer::ShowcaseHUD& hud);
 
@@ -62,7 +63,6 @@ int main(int argc, char* argv[]) {
       StartGame();
     }).detach();
   };
-
   // text in the top left corner in the screen
   platformer::Info info = initInfo(kFstColor);
   const int state_key = info.addFormat("State: {:7s}#{:3d}\n");
@@ -104,13 +104,17 @@ int main(int argc, char* argv[]) {
       info.update(state_key, toString(p.state()), p.state_frame());
       info.update(position_key, pos_x, pos_y);
       info.update(velocity_key, vel_x, vel_y);
-      info.update(p1_health_index, gs.players()[0].current_health(),
+      info.update(p1_health_index,
+                  gs.players()[0].current_health(),
                   gs.players()[0].max_health());
-      info.update(p2_health_index, gs.players()[1].current_health(),
+      info.update(p2_health_index,
+                  gs.players()[1].current_health(),
                   gs.players()[1].max_health());
 
-      platformer::debug("{:15s}#{:8s}#{:3d}: ", toString(p.state()),
-                        toString(p.attack_phase()), p.state_frame());
+      platformer::debug("{:15s}#{:8s}#{:3d}: ",
+                        toString(p.state()),
+                        toString(p.attack_phase()),
+                        p.state_frame());
       platformer::debug("pos[{:4d},{:4d}], ", pos_x, pos_y);
       platformer::debug("{:8s}, ", p.on_damage() ? "damage" : "");
       platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);
@@ -132,7 +136,8 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void handleKeyboardInput(sf::RenderWindow& window, Input& input,
+void handleKeyboardInput(sf::RenderWindow& window,
+                         Input& input,
                          platformer::ShowcaseCallback& cb,
                          platformer::ShowcaseHUD& hud) {
   sf::Event event;
@@ -140,40 +145,21 @@ void handleKeyboardInput(sf::RenderWindow& window, Input& input,
     hud.handleEvent(window, event);
 
     switch (event.type) {
-      case sf::Event::Closed:
-        window.close();
-        break;
+      case sf::Event::Closed: window.close(); break;
       case sf::Event::KeyPressed:
         switch (event.key.code) {
-          break;
-          case sf::Keyboard::A:
-            input.leftPressed = true;
-            break;
-          case sf::Keyboard::D:
-            input.rightPressed = true;
-            break;
-          case sf::Keyboard::W:
-            input.upPressed = true;
-            break;
-          case sf::Keyboard::S:
-            input.downPressed = true;
-            break;
+          case sf::Keyboard::A: input.leftPressed = true; break;
+          case sf::Keyboard::D: input.rightPressed = true; break;
+          case sf::Keyboard::W: input.upPressed = true; break;
+          case sf::Keyboard::S: input.downPressed = true; break;
         }
         break;
       case sf::Event::KeyReleased:
         switch (event.key.code) {
-          case sf::Keyboard::A:
-            input.leftPressed = false;
-            break;
-          case sf::Keyboard::D:
-            input.rightPressed = false;
-            break;
-          case sf::Keyboard::W:
-            input.upPressed = false;
-            break;
-          case sf::Keyboard::S:
-            input.downPressed = false;
-            break;
+          case sf::Keyboard::A: input.leftPressed = false; break;
+          case sf::Keyboard::D: input.rightPressed = false; break;
+          case sf::Keyboard::W: input.upPressed = false; break;
+          case sf::Keyboard::S: input.downPressed = false; break;
         }
         break;
       case sf::Event::MouseButtonPressed:

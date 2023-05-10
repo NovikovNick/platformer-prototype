@@ -46,8 +46,11 @@ struct ShowcaseContext {
   }
 
   Location getLocation() {
-    return {active_player_id == 0, position_1st_player, position_2nd_player,
-            platforms.data(), platforms.size()};
+    return {active_player_id == 0,
+            position_1st_player,
+            position_2nd_player,
+            platforms.data(),
+            platforms.size()};
   }
 };
 

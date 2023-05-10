@@ -8,6 +8,7 @@ namespace platformer {
 class ScalableGrid : public sf::Drawable {
   sf::VertexArray grid_;
   float unit_;
+
  public:
   ScalableGrid(const int unit);
   void update(const int delta);

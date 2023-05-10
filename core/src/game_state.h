@@ -1,6 +1,8 @@
 #ifndef PLATFORMER_GAME_STATE_H
 #define PLATFORMER_GAME_STATE_H
 
+#include <game_state_service.h>
+
 #include <Eigen/Dense>
 #include <fpm/fixed.hpp>
 #include <mutex>
@@ -8,7 +10,6 @@
 
 #include "game_object.h"
 #include "player.h"
-#include <game_state_service.h>
 
 namespace platformer {
 
@@ -16,6 +17,7 @@ class GameState {
   std::mutex mutex_;
   std::vector<VECTOR_2> left_top_mesh_;
   GameStateService state_service_;
+
  public:
   int frame;
   std::vector<Player> players_;
@@ -24,7 +26,7 @@ class GameState {
 
   GameState();
   GameState(GameState& src);
-  
+
   /// <summary>
   /// method to update all game state
   /// </summary>
@@ -36,7 +38,7 @@ class GameState {
   void removeAllPlatforms();
   void addPlatform(const int width, const int height, const int x, const int y);
   void setPlayerPosition(const int player_id, const int x, const int y);
-  
+
   GameObject getPlayer(const int player_id);
   std::vector<GameObject>& getPlatforms();
 

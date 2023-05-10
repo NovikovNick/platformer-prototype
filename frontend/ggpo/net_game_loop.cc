@@ -40,8 +40,7 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       platformer::debug("NGS: {} synchronizing\n", player_id);
       break;
     case GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER:
-      progress =
-          100 * info->u.synchronizing.count / info->u.synchronizing.total;
+      progress = 100 * info->u.synchronizing.count / info->u.synchronizing.total;
       player_id = info->u.connected.player;
       ngs.UpdateConnectProgress(player_id, progress);
       platformer::debug("NGS: {} sync: {}\n", player_id, progress);
@@ -57,9 +56,9 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       break;
     case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
       player_id = info->u.connection_interrupted.player;
-      ngs.SetDisconnectTimeout(
-          player_id, timeGetTime(),
-          info->u.connection_interrupted.disconnect_timeout);
+      ngs.SetDisconnectTimeout(player_id,
+                               timeGetTime(),
+                               info->u.connection_interrupted.disconnect_timeout);
       platformer::debug("NGS: {} interrupted\n", player_id);
       break;
     case GGPO_EVENTCODE_CONNECTION_RESUMED:
@@ -74,9 +73,8 @@ bool __cdecl vw_on_event_callback(GGPOEvent *info) {
       break;
     case GGPO_EVENTCODE_TIMESYNC:
       Sleep(1000 * info->u.timesync.frames_ahead / 60);
-        auto player_id = info->u.disconnected.player;
-      platformer::debug("NGS: {} tymesync.\n",
-                        info->u.timesync.frames_ahead);
+      auto player_id = info->u.disconnected.player;
+      platformer::debug("NGS: {} tymesync.\n", info->u.timesync.frames_ahead);
       break;
   }
   return true;
@@ -95,10 +93,10 @@ bool __cdecl vw_advance_frame_callback(int) {
 
   // Make sure we fetch new inputs from GGPO and use those to update
   // the game state instead of reading from the keyboard.
-  ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * player_count,
-                         &disconnect_flags);
+  ggpo_synchronize_input(
+      ggpo, (void *)inputs, sizeof(int) * player_count, &disconnect_flags);
   game_state->update(inputs[0], inputs[1]);
-  
+
   // Notify ggpo that we've moved forward exactly 1 frame.
   ggpo_advance_frame(ggpo);
   platformer::debug("vw_advance_frame_callback\n");
@@ -122,8 +120,10 @@ bool __cdecl vw_load_game_state_callback(unsigned char *buffer, int len) {
  * Save the current state to a buffer and return it to GGPO via the
  * buffer and len parameters.
  */
-bool __cdecl vw_save_game_state_callback(unsigned char **buffer, int *len,
-                                         int *checksum, int) {
+bool __cdecl vw_save_game_state_callback(unsigned char **buffer,
+                                         int *len,
+                                         int *checksum,
+                                         int) {
   bool res = platformer::Serializer::serialize(game_state, buffer, len);
   if (!res) return false;
   *checksum = platformer::fletcher32_checksum((short *)*buffer, *len / 2);
@@ -182,9 +182,7 @@ void __cdecl vw_free_buffer(void *buffer) {
 void print(const uint64_t frame, GGPOErrorCode result) {
   std::string res_str;
   switch (result) {
-    case GGPO_OK:
-      res_str = "GGPO_OK";
-      break;
+    case GGPO_OK: res_str = "GGPO_OK"; break;
     case GGPO_ERRORCODE_GENERAL_FAILURE:
       res_str = "GGPO_ERRORCODE_GENERAL_FAILURE";
       break;
@@ -200,15 +198,11 @@ void print(const uint64_t frame, GGPOErrorCode result) {
     case GGPO_ERRORCODE_PREDICTION_THRESHOLD:
       res_str = "GGPO_ERRORCODE_PREDICTION_THRESHOLD";
       break;
-    case GGPO_ERRORCODE_UNSUPPORTED:
-      res_str = "GGPO_ERRORCODE_UNSUPPORTED";
-      break;
+    case GGPO_ERRORCODE_UNSUPPORTED: res_str = "GGPO_ERRORCODE_UNSUPPORTED"; break;
     case GGPO_ERRORCODE_NOT_SYNCHRONIZED:
       res_str = "GGPO_ERRORCODE_NOT_SYNCHRONIZED";
       break;
-    case GGPO_ERRORCODE_IN_ROLLBACK:
-      res_str = "GGPO_ERRORCODE_IN_ROLLBACK";
-      break;
+    case GGPO_ERRORCODE_IN_ROLLBACK: res_str = "GGPO_ERRORCODE_IN_ROLLBACK"; break;
     case GGPO_ERRORCODE_INPUT_DROPPED:
       res_str = "GGPO_ERRORCODE_INPUT_DROPPED";
       break;
@@ -218,8 +212,7 @@ void print(const uint64_t frame, GGPOErrorCode result) {
     case GGPO_ERRORCODE_INVALID_REQUEST:
       res_str = "GGPO_ERRORCODE_PLAYER_DISCONNECTED";
       break;
-    default:
-      res_str = std::to_string(static_cast<int>(result));
+    default: res_str = std::to_string(static_cast<int>(result));
   }
   platformer::debug("{:5d}: {}\n", frame, res_str);
 }
@@ -231,7 +224,8 @@ using namespace std::chrono;
 using clock = high_resolution_clock;
 using frame = duration<uint64_t, std::ratio<1, 60>>;
 
-NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
+NetGameLoop::NetGameLoop(InputArgs args,
+                         std::shared_ptr<GameState> gs,
                          std::shared_ptr<std::atomic<int>> tick,
                          std::shared_ptr<std::atomic<int>> p0_input,
                          std::shared_ptr<std::atomic<int>> p1_input,
@@ -242,7 +236,7 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
       p0_input_(p0_input),
       p1_input_(p1_input),
       running_(running),
-      status_ (status){
+      status_(status) {
   game_state = gs;
 
   GGPOSessionCallbacks cb = {0};
@@ -272,8 +266,8 @@ NetGameLoop::NetGameLoop(InputArgs args, std::shared_ptr<GameState> gs,
 
   WSADATA wd = {0};
   WSAStartup(MAKEWORD(2, 2), &wd);
-  res = ggpo_start_session(&ggpo, &cb, title, num_players, input_size,
-                           args.local_port);
+  res = ggpo_start_session(
+      &ggpo, &cb, title, num_players, input_size, args.local_port);
   ggpo_set_disconnect_timeout(ggpo, 3000);
   ggpo_set_disconnect_notify_start(ggpo, 1000);
 
@@ -348,22 +342,22 @@ void NetGameLoop::operator()() {
       frame_ = frames.count();
       tick_->store(frame_);
 
-      {  // update  
+      {  // update
         result = ggpo_idle(ggpo, sleep_time);
 
         if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
           input = local_player == 0 ? p0_input_->load() : p1_input_->load();
-          result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input,
-                                        sizeof(input));
+          result = ggpo_add_local_input(
+              ggpo, ngs.local_player_handle, &input, sizeof(input));
         }
-        //print(frame_, result);
-        
+        // print(frame_, result);
+
         // synchronize these inputs with ggpo.  If we have enough input to
         // proceed ggpo will modify the input list with the correct inputs to
         // use and return 1.
         if (GGPO_SUCCEEDED(result)) {
-          result = ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * 2,
-                                          &disconnect_flags);
+          result = ggpo_synchronize_input(
+              ggpo, (void *)inputs, sizeof(int) * 2, &disconnect_flags);
           if (GGPO_SUCCEEDED(result)) {
             // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
             // the game by 1 frame using those inputs.
@@ -383,8 +377,7 @@ void NetGameLoop::operator()() {
         }
       }
 
-      update_time =
-          duration_cast<microseconds>(clock::now() - current_time).count();
+      update_time = duration_cast<microseconds>(clock::now() - current_time).count();
       sleep_time =
           std::ceil((frame_time - update_time - frame_startup_offset) / 1000);
 

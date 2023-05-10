@@ -5,8 +5,10 @@
 
 namespace {
 void updateAttackPhase(platformer::Player& player,
-                       platformer::GameObject& attack, const int startup_frame,
-                       const int active_frame, const int length) {
+                       platformer::GameObject& attack,
+                       const int startup_frame,
+                       const int active_frame,
+                       const int length) {
   if (player.state_frame < startup_frame) {
     player.attack_phase = platformer::AttackPhase::STARTUP;
 
@@ -99,8 +101,8 @@ const PlayerStateData& GameStateService::getStateData(
 };
 
 const bool GameStateService::isAttack(const PlayerState state) const {
-  return state == PlayerState::OVERHEAD_ATTACK ||
-         state == PlayerState::MID_ATTACK || state == PlayerState::LOW_ATTACK;
+  return state == PlayerState::OVERHEAD_ATTACK || state == PlayerState::MID_ATTACK ||
+         state == PlayerState::LOW_ATTACK;
 };
 
 const FrameData& GameStateService::getFrameData(const PlayerState state) const {

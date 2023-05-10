@@ -14,16 +14,13 @@ bool running = false;
 std::string local_public_ip = "disabled";
 }  // namespace
 
-void Init(const Location location) {
-  // args.local = location.is_1st_player;
+void Init(const Location loc) {
   gs = {};
-  gs.setPlayerPosition(0, location.position_1st_player.x,
-                       location.position_1st_player.y);
-  gs.setPlayerPosition(1, location.position_2nd_player.x,
-                       location.position_2nd_player.y);
+  gs.setPlayerPosition(0, loc.position_1st_player.x, loc.position_1st_player.y);
+  gs.setPlayerPosition(1, loc.position_2nd_player.x, loc.position_2nd_player.y);
   gs.removeAllPlatforms();
-  for (int i = 0; i < location.platforms_count; ++i) {
-    auto &it = location.platforms[i];
+  for (int i = 0; i < loc.platforms_count; ++i) {
+    auto &it = loc.platforms[i];
     gs.addPlatform(it.width, it.height, it.position.x, it.position.y);
   }
 };
@@ -55,8 +52,6 @@ void GetState(uint8_t *buf, int *length, float *dx) {
   *dx = 1;
 }
 
-GameStatus GetStatus() {
-  return running ? GameStatus::RUN : GameStatus::STOPED;
-};
+GameStatus GetStatus() { return running ? GameStatus::RUN : GameStatus::STOPED; };
 
 PlatformerErrorCode GetErrorCode() { return PlatformerErrorCode::OK; };

@@ -1,8 +1,11 @@
 #include "rect_shape.h"
 
 namespace platformer {
-RectShape::RectShape(const sf::Color color, const int width, const int height,
-                     const float x, const float y)
+RectShape::RectShape(const sf::Color color,
+                     const int width,
+                     const int height,
+                     const float x,
+                     const float y)
     : shape_(sf::VertexArray(sf::Quads, 4)),
       width(width),
       height(height),

@@ -19,8 +19,7 @@ class Info : public sf::Drawable {
 
   template <typename... Args>
   void update(const int i, Args... args) {
-    rows_[i].setString(
-        std::vformat(formats_[i], std::make_format_args(args...)));
+    rows_[i].setString(std::vformat(formats_[i], std::make_format_args(args...)));
   }
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;

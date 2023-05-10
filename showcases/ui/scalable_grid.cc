@@ -15,24 +15,20 @@ void ScalableGrid::update(const int unit) {
   init(grid_, unit_);
 };
 
-void ScalableGrid::draw(sf::RenderTarget& target,
-                        sf::RenderStates states) const {
+void ScalableGrid::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(grid_, states);
 }
 
 void ScalableGrid::init(sf::VertexArray& grid, const float unit) {
   for (int i = 0; i <= 56; i += 2) {
     grid[i] = {{i * unit, 0}, i % 4 == 0 ? kWhiteColor : kGreyColor};
-    grid[i + 1] = {{i * unit, unit * 56},
-                   i % 4 == 0 ? kWhiteColor : kGreyColor};
+    grid[i + 1] = {{i * unit, unit * 56}, i % 4 == 0 ? kWhiteColor : kGreyColor};
   }
 
   for (int i = 2; i <= 56; i += 2) {
-    grid[56 + i] = {{0, i * unit},
-                    i % 4 == 0 ? kWhiteColor : kGreyColor};
-    grid[57 + i] = {{unit * 56, i * unit},
-                    i % 4 == 0 ? kWhiteColor : kGreyColor};
+    grid[56 + i] = {{0, i * unit}, i % 4 == 0 ? kWhiteColor : kGreyColor};
+    grid[57 + i] = {{unit * 56, i * unit}, i % 4 == 0 ? kWhiteColor : kGreyColor};
   }
 };
 
-};  // namespace math
+};  // namespace platformer

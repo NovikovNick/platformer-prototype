@@ -11,9 +11,11 @@ namespace platformer {
 
 class Serializer {
  public:
-  static bool serialize(std::shared_ptr<GameState> gs, unsigned char **buffer,
+  static bool serialize(std::shared_ptr<GameState> gs,
+                        unsigned char **buffer,
                         int *len);
-  static bool deserialize(std::shared_ptr<GameState> gs, unsigned char *buffer,
+  static bool deserialize(std::shared_ptr<GameState> gs,
+                          unsigned char *buffer,
                           int len);
 
   static int serialize(const GameState &gs, unsigned char *buffer);

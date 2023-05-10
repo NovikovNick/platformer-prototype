@@ -6,10 +6,10 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+#include "../showcase_context.h"
 #include "info.h"
 #include "rect_shape.h"
 #include "scalable_grid.h"
-#include "../showcase_context.h"
 
 namespace platformer {
 

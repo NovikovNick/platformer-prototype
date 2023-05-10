@@ -32,15 +32,17 @@ class VectorProductVisualizer : public sf::Drawable {
  public:
   Eigen::Vector2f lhs_, rhs_, origin_;
 
-  VectorProductVisualizer(const sf::Font& font, const sf::Color bg_color,
-                          const sf::Color fst_color, const sf::Color snd_color);
+  VectorProductVisualizer(const sf::Font& font,
+                          const sf::Color bg_color,
+                          const sf::Color fst_color,
+                          const sf::Color snd_color);
 
-  void update(const Eigen::Vector2f mouse_position,
-              const bool lft_mouse_pressed);
+  void update(const Eigen::Vector2f mouse_position, const bool lft_mouse_pressed);
 
   void update(const Eigen::Vector2f mouse_position);
 
-  void update(Eigen::Vector2f lhs, Eigen::Vector2f rhs,
+  void update(Eigen::Vector2f lhs,
+              Eigen::Vector2f rhs,
               const Eigen::Vector2f origin);
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;

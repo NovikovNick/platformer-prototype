@@ -85,7 +85,7 @@ struct player_locomotion_table {
     auto input_down_lkm = event<InputDownLKM>;
     auto input_down_rkm = event<InputDownRKM>;
     auto input_backward_lkm = event<InputBackwardLKM>;
-
+    // clang-format off
     /**
      * Initial state: *initial_state
      * Transition DSL: src_state + event [ guard ] / action = dst_state
@@ -121,7 +121,7 @@ struct player_locomotion_table {
 
         hit_stun_s + none[FrameLessOrEq{kHitStun - 1}] = hit_stun_s,
         hit_stun_s + none[FrameGreat{kHitStun - 1}] = idle_s,
-        
+
         squat_block_stun_s + none[FrameLessOrEq{kBlockStun - 1}] = squat_block_stun_s,
         squat_block_stun_s + none[FrameGreat{kBlockStun - 1}] = idle_s,
 
@@ -148,12 +148,12 @@ struct player_locomotion_table {
         low_attack_s + none[onGround && FrameLessOrEq{kLowAttack - 1}] = low_attack_s,
         low_attack_s + none[onGround && FrameGreat{kLowAttack - 1}] = idle_s,
         low_attack_s + none[inAir] = falling_s,
-        
+
         overhead_attack_s + none[onGround && FrameLessOrEq{kOverHeadAttack - 1}] = overhead_attack_s,
         overhead_attack_s + none[onGround && FrameGreat{kOverHeadAttack - 1}] = idle_s,
         overhead_attack_s + none[inAir] = falling_s,
 
-        run_s + none[onGround] = idle_s, 
+        run_s + none[onGround] = idle_s,
         run_s + input_left[onGround] = run_s,
         run_s + input_right[onGround] = run_s,
         run_s + input_up[onGround] = jump_s,
@@ -171,6 +171,7 @@ struct player_locomotion_table {
 
         falling_s + none[onGround] = landing_s,
         falling_s + input_up[inAir && FrameLessOrEq{2}] = jump_s);
+    // clang-format on
   }
 };
 

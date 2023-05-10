@@ -11,6 +11,7 @@ class VectorShape : public sf::Drawable {
   std::vector<Eigen::Vector2f> arrow_shape_;
   sf::Color color_;
   sf::VertexArray arrow_array_, line_array_;
+
  public:
   VectorShape(sf::Color color);
   void update(const Eigen::Vector2f origin, const Eigen::Vector2f position);

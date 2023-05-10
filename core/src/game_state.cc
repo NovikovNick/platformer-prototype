@@ -14,8 +14,7 @@ GameState::GameState()
       players_(std::vector<Player>{}),
       melee_attack(std::vector<GameObject>{}),
       platforms_(std::vector<GameObject>{}),
-      left_top_mesh_(
-          {{kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}}),
+      left_top_mesh_({{kZero, kOne}, {kOne, kOne}, {kOne, kZero}, {kZero, kZero}}),
       state_service_({}) {
   players_.emplace_back();
   players_.emplace_back();
@@ -77,7 +76,9 @@ void GameState::removeAllPlatforms() {
   platforms_.clear();
 }
 
-void GameState::addPlatform(const int width, const int height, const int x,
+void GameState::addPlatform(const int width,
+                            const int height,
+                            const int x,
                             const int y) {
   std::scoped_lock lock{mutex_};
   auto& platform = platforms_.emplace_back(width, height, left_top_mesh_);
@@ -102,9 +103,7 @@ GameObject GameState::getPlayer(const int player_id) {
 
 std::vector<GameObject>& GameState::getPlatforms() { return platforms_; }
 
-std::unique_lock<std::mutex> GameState::lock() {
-  return std::unique_lock{mutex_};
-}
+std::unique_lock<std::mutex> GameState::lock() { return std::unique_lock{mutex_}; }
 
 GameState& GameState::operator=(const GameState& src) {
   players_ = src.players_;

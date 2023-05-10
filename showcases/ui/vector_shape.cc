@@ -17,7 +17,7 @@ void VectorShape::update(const Eigen::Vector2f origin,
                          const Eigen::Vector2f position) {
   origin_ = origin;
   position_ = position;
-  
+
   Eigen::Transform<float, 2, Eigen::Affine> t;
   t = Eigen::Matrix3f::Identity();
   t *= Eigen::Translation2f(position_);
@@ -34,8 +34,7 @@ void VectorShape::update(const Eigen::Vector2f origin,
   line_array_[1].position = {position_.x(), position_.y()};
 };
 
-void VectorShape::draw(sf::RenderTarget& target,
-                       sf::RenderStates states) const {
+void VectorShape::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(line_array_, states);
   target.draw(arrow_array_, states);
 };

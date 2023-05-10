@@ -23,8 +23,10 @@ sf::VertexArray initLine(const sf::Color color) {
   return line;
 }
 
-sf::Text initLabel(const sf::Font& font, const sf::Color color,
-                   const std::string& text, const int font_size) {
+sf::Text initLabel(const sf::Font& font,
+                   const sf::Color color,
+                   const std::string& text,
+                   const int font_size) {
   sf::Text label(text, font, font_size);
   label.setColor(color);
   return label;
@@ -43,8 +45,7 @@ sf::CircleShape initSelected(const sf::Color color) {
   return point;
 }
 
-sf::CircleShape initUnitCircle(const sf::Color bg_color,
-                               const sf::Color color) {
+sf::CircleShape initUnitCircle(const sf::Color bg_color, const sf::Color color) {
   sf::CircleShape unit_circle(0.0f);
   unit_circle.setPointCount(75);
   unit_circle.setFillColor(bg_color);
@@ -68,8 +69,7 @@ inline sf::Vector2f toScreen(const Eigen::Vector2f& world_coord) {
   return sf::Vector2f(screen_coord.x(), screen_coord.y());
 }
 
-inline bool isHover(const Eigen::Vector2f& mouse,
-                    const Eigen::Vector2f& target) {
+inline bool isHover(const Eigen::Vector2f& mouse, const Eigen::Vector2f& target) {
   const bool intersect_x = target.x() <= mouse.x() + kSelectedRadius &&
                            target.x() >= mouse.x() - kSelectedRadius;
 
@@ -152,7 +152,8 @@ void VectorProductVisualizer::update(const Eigen::Vector2f mouse_position) {
   }
 };
 
-void VectorProductVisualizer::update(Eigen::Vector2f lhs, Eigen::Vector2f rhs,
+void VectorProductVisualizer::update(Eigen::Vector2f lhs,
+                                     Eigen::Vector2f rhs,
                                      const Eigen::Vector2f origin) {
   lhs -= origin;
   rhs -= origin;

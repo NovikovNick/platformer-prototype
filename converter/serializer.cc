@@ -15,12 +15,10 @@ static VECTOR_2 convert(const ser::Vector2& src) {
   return VECTOR_2{FIX::from_raw_value(src.x()), FIX::from_raw_value(src.y())};
 }
 
-static ser::GameObject convert(const platformer::GameObject& src,
-                               const bool fixed) {
+static ser::GameObject convert(const platformer::GameObject& src, const bool fixed) {
   ser::GameObject dst;
 
-  for (const auto& point : src.mesh)
-    dst.mutable_mesh()->Add(convert(point, fixed));
+  for (const auto& point : src.mesh) dst.mutable_mesh()->Add(convert(point, fixed));
   dst.set_width(src.width_);
   dst.set_height(src.height_);
 
@@ -29,8 +27,8 @@ static ser::GameObject convert(const platformer::GameObject& src,
   return dst;
 }
 static platformer::GameObject convert(const ser::GameObject& src) {
-  platformer::GameObject dst{src.width(), src.height(),
-                             std::vector<VECTOR_2>(src.mesh_size())};
+  platformer::GameObject dst{
+      src.width(), src.height(), std::vector<VECTOR_2>(src.mesh_size())};
   for (int i = 0; i < src.mesh_size(); ++i) dst.mesh[i] = convert(src.mesh(i));
   dst.position = convert(src.position());
   dst.velocity = convert(src.velocity());
@@ -39,97 +37,62 @@ static platformer::GameObject convert(const ser::GameObject& src) {
 
 static ser::AttackPhase convert(const platformer::AttackPhase& src) {
   switch (src) {
-    case platformer::AttackPhase::ACTIVE:
-      return ser::AttackPhase::ACTIVE;
-    case platformer::AttackPhase::RECOVERY:
-      return ser::AttackPhase::RECOVERY;
-    case platformer::AttackPhase::STARTUP:
-      return ser::AttackPhase::STARTUP;
-    case platformer::AttackPhase::NONE:
-      return ser::AttackPhase::NONE;
+    case platformer::AttackPhase::ACTIVE: return ser::AttackPhase::ACTIVE;
+    case platformer::AttackPhase::RECOVERY: return ser::AttackPhase::RECOVERY;
+    case platformer::AttackPhase::STARTUP: return ser::AttackPhase::STARTUP;
+    case platformer::AttackPhase::NONE: return ser::AttackPhase::NONE;
   }
 }
 
-
 static platformer::AttackPhase convert(const ser::AttackPhase& src) {
   switch (src) {
-    case ser::AttackPhase::ACTIVE:
-      return platformer::AttackPhase::ACTIVE;
-    case ser::AttackPhase::RECOVERY:
-      return platformer::AttackPhase::RECOVERY;
-    case ser::AttackPhase::STARTUP:
-      return platformer::AttackPhase::STARTUP;
-    case ser::AttackPhase::NONE:
-      return platformer::AttackPhase::NONE;
+    case ser::AttackPhase::ACTIVE: return platformer::AttackPhase::ACTIVE;
+    case ser::AttackPhase::RECOVERY: return platformer::AttackPhase::RECOVERY;
+    case ser::AttackPhase::STARTUP: return platformer::AttackPhase::STARTUP;
+    case ser::AttackPhase::NONE: return platformer::AttackPhase::NONE;
   }
 }
 
 static ser::PlayerState convert(const platformer::PlayerState& src) {
   switch (src) {
-    case platformer::PlayerState::IDLE:
-      return ser::PlayerState::IDLE;
-    case platformer::PlayerState::RUN:
-      return ser::PlayerState::RUN;
-    case platformer::PlayerState::JUMP:
-      return ser::PlayerState::JUMP;
-    case platformer::PlayerState::FALLING:
-      return ser::PlayerState::FALLING;
-    case platformer::PlayerState::LANDING:
-      return ser::PlayerState::LANDING;
-    case platformer::PlayerState::LOW_ATTACK:
-      return ser::PlayerState::LOW_ATTACK;
-    case platformer::PlayerState::MID_ATTACK:
-      return ser::PlayerState::MID_ATTACK;
+    case platformer::PlayerState::IDLE: return ser::PlayerState::IDLE;
+    case platformer::PlayerState::RUN: return ser::PlayerState::RUN;
+    case platformer::PlayerState::JUMP: return ser::PlayerState::JUMP;
+    case platformer::PlayerState::FALLING: return ser::PlayerState::FALLING;
+    case platformer::PlayerState::LANDING: return ser::PlayerState::LANDING;
+    case platformer::PlayerState::LOW_ATTACK: return ser::PlayerState::LOW_ATTACK;
+    case platformer::PlayerState::MID_ATTACK: return ser::PlayerState::MID_ATTACK;
     case platformer::PlayerState::OVERHEAD_ATTACK:
       return ser::PlayerState::OVERHEAD_ATTACK;
-    case platformer::PlayerState::SQUAT:
-      return ser::PlayerState::SQUAT;
-    case platformer::PlayerState::SQUAT_BLOCK:
-      return ser::PlayerState::SQUAT_BLOCK;
-    case platformer::PlayerState::BLOCK:
-      return ser::PlayerState::BLOCK;
-    case platformer::PlayerState::HIT_STUN:
-      return ser::PlayerState::HIT_STUN;
-    case platformer::PlayerState::BLOCK_STUN:
-      return ser::PlayerState::BLOCK_STUN;
+    case platformer::PlayerState::SQUAT: return ser::PlayerState::SQUAT;
+    case platformer::PlayerState::SQUAT_BLOCK: return ser::PlayerState::SQUAT_BLOCK;
+    case platformer::PlayerState::BLOCK: return ser::PlayerState::BLOCK;
+    case platformer::PlayerState::HIT_STUN: return ser::PlayerState::HIT_STUN;
+    case platformer::PlayerState::BLOCK_STUN: return ser::PlayerState::BLOCK_STUN;
     case platformer::PlayerState::SQUAT_BLOCK_STUN:
       return ser::PlayerState::SQUAT_BLOCK_STUN;
-    case platformer::PlayerState::DEATH:
-      return ser::PlayerState::DEATH;
+    case platformer::PlayerState::DEATH: return ser::PlayerState::DEATH;
   }
 }
 static platformer::PlayerState convert(const ser::PlayerState& src) {
   switch (src) {
-    case ser::PlayerState::IDLE:
-      return platformer::PlayerState::IDLE;
-    case ser::PlayerState::RUN:
-      return platformer::PlayerState::RUN;
-    case ser::PlayerState::JUMP:
-      return platformer::PlayerState::JUMP;
-    case ser::PlayerState::FALLING:
-      return platformer::PlayerState::FALLING;
-    case ser::PlayerState::LANDING:
-      return platformer::PlayerState::LANDING;
-    case ser::PlayerState::LOW_ATTACK:
-      return platformer::PlayerState::LOW_ATTACK;
-    case ser::PlayerState::MID_ATTACK:
-      return platformer::PlayerState::MID_ATTACK;
+    case ser::PlayerState::IDLE: return platformer::PlayerState::IDLE;
+    case ser::PlayerState::RUN: return platformer::PlayerState::RUN;
+    case ser::PlayerState::JUMP: return platformer::PlayerState::JUMP;
+    case ser::PlayerState::FALLING: return platformer::PlayerState::FALLING;
+    case ser::PlayerState::LANDING: return platformer::PlayerState::LANDING;
+    case ser::PlayerState::LOW_ATTACK: return platformer::PlayerState::LOW_ATTACK;
+    case ser::PlayerState::MID_ATTACK: return platformer::PlayerState::MID_ATTACK;
     case ser::PlayerState::OVERHEAD_ATTACK:
       return platformer::PlayerState::OVERHEAD_ATTACK;
-    case ser::PlayerState::SQUAT:
-      return platformer::PlayerState::SQUAT;
-    case ser::PlayerState::SQUAT_BLOCK:
-      return platformer::PlayerState::SQUAT_BLOCK;
-    case ser::PlayerState::BLOCK:
-      return platformer::PlayerState::BLOCK;
-    case ser::PlayerState::HIT_STUN:
-      return platformer::PlayerState::HIT_STUN;
-    case ser::PlayerState::BLOCK_STUN:
-      return platformer::PlayerState::BLOCK_STUN;
+    case ser::PlayerState::SQUAT: return platformer::PlayerState::SQUAT;
+    case ser::PlayerState::SQUAT_BLOCK: return platformer::PlayerState::SQUAT_BLOCK;
+    case ser::PlayerState::BLOCK: return platformer::PlayerState::BLOCK;
+    case ser::PlayerState::HIT_STUN: return platformer::PlayerState::HIT_STUN;
+    case ser::PlayerState::BLOCK_STUN: return platformer::PlayerState::BLOCK_STUN;
     case ser::PlayerState::SQUAT_BLOCK_STUN:
       return platformer::PlayerState::SQUAT_BLOCK_STUN;
-    case ser::PlayerState::DEATH:
-      return platformer::PlayerState::DEATH;
+    case ser::PlayerState::DEATH: return platformer::PlayerState::DEATH;
   }
 }
 
@@ -162,8 +125,7 @@ static platformer::Player convert(const ser::Player& src) {
   return dst;
 }
 
-static ser::GameState convert(const platformer::GameState& src,
-                              const bool fixed) {
+static ser::GameState convert(const platformer::GameState& src, const bool fixed) {
   ser::GameState dst;
   dst.set_frame(src.frame);
 
@@ -183,7 +145,8 @@ static ser::GameState convert(const platformer::GameState& src,
 namespace platformer {
 
 bool Serializer::serialize(std::shared_ptr<GameState> gs,
-                           unsigned char** buffer, int* len) {
+                           unsigned char** buffer,
+                           int* len) {
   auto lock = gs->lock();
   auto serialized = convert(*gs.get(), true);
   *len = serialized.ByteSize();
@@ -192,7 +155,8 @@ bool Serializer::serialize(std::shared_ptr<GameState> gs,
 }
 
 bool Serializer::deserialize(std::shared_ptr<GameState> gs,
-                             unsigned char* buffer, int len) {
+                             unsigned char* buffer,
+                             int len) {
   ser::GameState serialized;
   auto res = serialized.ParseFromArray(buffer, len);
 

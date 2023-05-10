@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+ColumnLimit: 85
+AlignAfterOpenBracket: Align
+BinPackArguments: false
+BinPackParameters: false
+AllowShortCaseLabelsOnASingleLine: true

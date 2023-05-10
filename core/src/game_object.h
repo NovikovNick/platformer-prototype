@@ -50,8 +50,7 @@ class GameObject {
   int width_, height_;
   VECTOR_2 position, velocity;
 
-  GameObject(const int width, const int height,
-             const std::vector<VECTOR_2>& mesh);
+  GameObject(const int width, const int height, const std::vector<VECTOR_2>& mesh);
 
   VECTOR_3 operator[](const size_t index) const;
 

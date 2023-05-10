@@ -31,16 +31,14 @@ PlatformerErrorCode error_code = PlatformerErrorCode::OK;
 std::string mapped_public_ip;
 }  // namespace
 
-void Init(const Location location) {
-  args.local = location.is_1st_player;
+void Init(const Location loc) {
+  args.local = loc.is_1st_player;
   gs = std::make_shared<platformer::GameState>();
-  gs->setPlayerPosition(0, location.position_1st_player.x,
-                        location.position_1st_player.y);
-  gs->setPlayerPosition(1, location.position_2nd_player.x,
-                        location.position_2nd_player.y);
+  gs->setPlayerPosition(0, loc.position_1st_player.x, loc.position_1st_player.y);
+  gs->setPlayerPosition(1, loc.position_2nd_player.x, loc.position_2nd_player.y);
   gs->removeAllPlatforms();
-  for (int i = 0; i < location.platforms_count; ++i) {
-    auto& it = location.platforms[i];
+  for (int i = 0; i < loc.platforms_count; ++i) {
+    auto& it = loc.platforms[i];
     gs->addPlatform(it.width, it.height, it.position.x, it.position.y);
   }
 };
@@ -74,8 +72,8 @@ void StartGame() {
     running->store(true);
     stopped = false;
     std::thread([] {
-      platformer::NetGameLoop loop(args, gs, tick, p0_input, p1_input, running,
-                                   status);
+      platformer::NetGameLoop loop(
+          args, gs, tick, p0_input, p1_input, running, status);
       loop();
       stopped = true;
     }).detach();
@@ -105,14 +103,10 @@ void GetState(uint8_t* buf, int* length, float* dx) {
 
 GameStatus GetStatus() {
   switch (status->load()) {
-    case 0:
-      return GameStatus::RUN;
-    case 1:
-      return GameStatus::SYNC;
-    case 2:
-      return GameStatus::STOPED;
-    default:
-      return GameStatus::INVALID;
+    case 0: return GameStatus::RUN;
+    case 1: return GameStatus::SYNC;
+    case 2: return GameStatus::STOPED;
+    default: return GameStatus::INVALID;
   }
 };
 

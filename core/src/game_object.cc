@@ -10,7 +10,8 @@ namespace platformer {
 using namespace Eigen;
 using namespace fpm;
 
-GameObject::GameObject(const int width, const int height,
+GameObject::GameObject(const int width,
+                       const int height,
                        const std::vector<VECTOR_2>& mesh)
     : width_(width),
       height_(height),
@@ -19,6 +20,7 @@ GameObject::GameObject(const int width, const int height,
       velocity(VECTOR_2{kZero, kZero}) {}
 
 VECTOR_3 GameObject::operator[](const size_t index) const {
+  // clang-format off
   Matrix3<FIX> transition;
   transition << kOne,   kZero,  position.x(),
                 kZero,  kOne,   position.y(),
@@ -29,6 +31,7 @@ VECTOR_3 GameObject::operator[](const size_t index) const {
             kZero,          kZero,          kOne;
   Vector3<fixed_16_16> vect(mesh[index].x(), mesh[index].y(), kOne);
   return transition * scale * vect;
+  // clang-format on
 }
 
 std::pair<FIX, FIX> GameObject::getProjectionMinMax(const int axis) const {

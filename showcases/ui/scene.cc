@@ -12,19 +12,19 @@ Scene::Scene(sf::Color fst_color, sf::Color snd_color, sf::Color trd_color)
 void Scene::init(const ShowcaseContext ctx) {
   shapes_.clear();
 
-  shapes_.emplace_back(ctx.active_player_id == 0 ? trd_color : fst_color, 0, 0,
-                       0, 0);
-  shapes_.emplace_back(ctx.active_player_id != 0 ? trd_color : fst_color, 0, 0,
-                       0, 0);
+  shapes_.emplace_back(
+      ctx.active_player_id == 0 ? trd_color : fst_color, 0, 0, 0, 0);
+  shapes_.emplace_back(
+      ctx.active_player_id != 0 ? trd_color : fst_color, 0, 0, 0, 0);
 
-  shapes_.emplace_back(snd_color, 0, 0, ctx.position_1st_player.x,
-                       ctx.position_1st_player.y);
-  shapes_.emplace_back(snd_color, 0, 0, ctx.position_2nd_player.x,
-                       ctx.position_2nd_player.y);
+  shapes_.emplace_back(
+      snd_color, 0, 0, ctx.position_1st_player.x, ctx.position_1st_player.y);
+  shapes_.emplace_back(
+      snd_color, 0, 0, ctx.position_2nd_player.x, ctx.position_2nd_player.y);
 
   for (const auto& it : ctx.platforms) {
-    shapes_.emplace_back(fst_color, it.width, it.height, it.position.x,
-                         it.position.y);
+    shapes_.emplace_back(
+        fst_color, it.width, it.height, it.position.x, it.position.y);
   }
 }
 
@@ -43,17 +43,16 @@ void Scene::update(const float dx) {
     auto& prev_player = prev_game_state.players()[i - offset];
     auto& curr_player = curr_game_state.players()[i - offset];
 
-    shapes_[i].update(std::lerp(prev_player.obj().position().x(),
-                                curr_player.obj().position().x(), dx),
-                      std::lerp(prev_player.obj().position().y(),
-                                curr_player.obj().position().y(), dx));
+    shapes_[i].update(
+        std::lerp(
+            prev_player.obj().position().x(), curr_player.obj().position().x(), dx),
+        std::lerp(
+            prev_player.obj().position().y(), curr_player.obj().position().y(), dx));
 
-    shapes_[i].updateSize(prev_player.obj().width(),
-                          prev_player.obj().height());
+    shapes_[i].updateSize(prev_player.obj().width(), prev_player.obj().height());
     shapes_[i].update(1);
 
-    shapes_[i].update(prev_player.on_damage() ? sf::Color::Red
-                                              : sf::Color::White);
+    shapes_[i].update(prev_player.on_damage() ? sf::Color::Red : sf::Color::White);
 
     if (prev_player.state() == ser::PlayerState::BLOCK)
       shapes_[i].update(sf::Color::Yellow);
