@@ -159,3 +159,7 @@ out
 
 # vcpkg
 vcpkg_installed
+
+/vcpkg
+/builds
+/build
