@@ -1,0 +1,10 @@
+{
+  "name": "platformer-prototype",
+  "version-string": "latest",
+  "dependencies": [
+    "protobuf",
+    "eigen3",
+    "sfml",
+    "imgui-sfml"
+  ]
+}

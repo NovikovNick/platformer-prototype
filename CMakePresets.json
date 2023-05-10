@@ -1,0 +1,75 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "ninja-vcpkg-default",
+      "displayName": "ninja-vcpkg-default",
+      "description": "Configure with vcpkg toolchain and generate Ninja project",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/builds/${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_TOOLCHAIN_FILE": {
+          "type": "FILEPATH",
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }
+      },
+      "environment": {
+        "VCPKG_ROOT": "./external/vcpkg"
+      }
+    },
+    {
+      "name": "platformer-debug",
+      "inherits": "ninja-vcpkg-default",
+      "displayName": "platformer debug configuration preset",
+      "description": "platformer debug configuration preset",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "platformer-release",
+      "inherits": "ninja-vcpkg-default",
+      "displayName": "platformer release configuration preset",
+      "description": "platformer release configuration preset",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "platformer-build-debug",
+      "displayName": "platformer-build-debug",
+      "description": "Build with Ninja/vcpkg (Release)",
+      "configurePreset": "platformer-debug"
+    },
+    {
+      "name": "platformer-build-release",
+      "displayName": "platformer-build-release",
+      "description": "Build with Ninja/vcpkg (Release)",
+      "configurePreset": "platformer-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "platformer-test-debug",
+      "displayName": "platformer-test-debug",
+      "description": "platformer-test-debug",
+      "configurePreset": "platformer-debug"
+    },
+    {
+      "name": "platformer-test-release",
+      "displayName": "platformer-test-release",
+      "description": "platformer-test-release",
+      "configurePreset": "platformer-release"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+name: Platformer protorype build and test
+on:
+  push:
+    branches: [ "develop", "master" ]
+  pull_request:
+    branches: [ "develop", "master" ]
+
+env:
+  BUILD_TYPE: Release
+jobs:
+  job:
+    name: ${{ matrix.os }}-${{ github.workflow }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Build GGPO
+        working-directory:  ${{ github.workspace }}/external/ggpo
+        run: |
+         cmake -G "Visual Studio 17 2022" -A x64 -B build -DBUILD_SHARED_LIBS=off
+         cmake --build ./build --config ${{env.BUILD_TYPE}}
+
+      - name: Restore from cache and setup vcpkg executable and data files.
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: ${{ github.workspace }}/external/vcpkg
+
+      - name: Run CMake+vcpkg+Ninja+CTest to build packages and generate/build/test the code.
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'platformer-release'
+          buildPreset: 'platformer-build-release'
+          testPreset: 'platformer-test-release'
