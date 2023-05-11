@@ -14,7 +14,6 @@
 namespace {
 auto gs = std::make_shared<platformer::GameState>();
 auto tick = std::make_shared<std::atomic<int>>(0);
-auto frame_started_at = std::make_shared<std::atomic<uint64_t>>(0);
 auto p0_input = std::make_shared<std::atomic<int>>(0);
 auto p1_input = std::make_shared<std::atomic<int>>(0);
 
@@ -49,8 +48,7 @@ void StartGame() {
     stopped = false;
 
     std::thread([] {
-      platformer::CoreGameLoop loop(
-          gs, tick, frame_started_at, p0_input, p1_input, running);
+      platformer::CoreGameLoop loop(gs, tick, p0_input, p1_input, running);
       loop();
       stopped = true;
     }).detach();
@@ -75,20 +73,26 @@ void Update(const Input input) {
 };
 
 void GetState(uint8_t *buf, int *length, float *dx) {
-  *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
-
   using namespace std::chrono;
-  auto timestamp = high_resolution_clock::now().time_since_epoch();
+  auto t0 = steady_clock::now().time_since_epoch();
+  *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
+  auto timestamp = steady_clock::now().time_since_epoch();
   auto now = duration_cast<microseconds>(timestamp).count();
-  auto last_frame_at = frame_started_at->load();
+  auto serialization_time = duration_cast<microseconds>(timestamp - t0).count();
+  auto last_frame_at = gs->timestamp;
 
   float frame = platformer::CoreGameLoop::getMicrosecondsInOneFrame();
   float elapsed_after_last_frame = now - last_frame_at;
   *dx = (now - last_frame_at) / frame;
-  /*platformer::debug(
-      "frame = {}, last_frame_at = {}, now = {}, dx = {:.2f}, "
-      "elapsed_after_last_frame= {} \n",
-      frame, last_frame_at, now, *dx, elapsed_after_last_frame);*/
+  platformer::debug(
+      "dx = {:.2f}, "
+      "last_frame_at = {}, now = {}, "
+      "elapsed_after_last_frame= {}, serialization_time = {} \n",
+      *dx,
+      last_frame_at,
+      now,
+      elapsed_after_last_frame,
+      serialization_time);
 }
 
 GameStatus GetStatus() {

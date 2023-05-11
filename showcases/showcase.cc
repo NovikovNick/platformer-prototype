@@ -111,13 +111,13 @@ int main(int argc, char* argv[]) {
                   gs.players()[1].current_health(),
                   gs.players()[1].max_health());
 
-      platformer::debug("{:15s}#{:8s}#{:3d}: ",
+      /*platformer::debug("{:15s}#{:8s}#{:3d}: ",
                         toString(p.state()),
                         toString(p.attack_phase()),
                         p.state_frame());
       platformer::debug("pos[{:4d},{:4d}], ", pos_x, pos_y);
       platformer::debug("{:8s}, ", p.on_damage() ? "damage" : "");
-      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);
+      platformer::debug("vel[{:4d},{:4d}]\n", vel_x, vel_y);*/
     }
 
     // render

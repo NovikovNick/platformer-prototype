@@ -11,6 +11,7 @@ namespace platformer {
 
 GameState::GameState()
     : frame(0),
+      timestamp(0),
       players_(std::vector<Player>{}),
       melee_attack(std::vector<GameObject>{}),
       platforms_(std::vector<GameObject>{}),
@@ -28,6 +29,7 @@ GameState::GameState(GameState& src) {
   platforms_ = src.platforms_;
   melee_attack = src.melee_attack;
   frame = src.frame;
+  timestamp = src.timestamp;
 }
 
 // UPDATE METHOD

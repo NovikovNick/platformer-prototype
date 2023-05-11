@@ -380,7 +380,11 @@ void NetGameLoop::operator()() {
       update_time = duration_cast<microseconds>(clock::now() - current_time).count();
       sleep_time =
           std::ceil((frame_time - update_time - frame_startup_offset) / 1000);
-
+      
+      debug("frame {:4d}, update_time {:4d}, sleep_time {:.2f}!\n",
+            frame_,
+            update_time,
+            frame_time - update_time - frame_startup_offset);
       if (sleep_time > 0) Sleep(sleep_time);
       current_time = clock::now();
     } else {

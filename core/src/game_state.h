@@ -20,6 +20,7 @@ class GameState {
 
  public:
   int frame;
+  uint64_t timestamp;
   std::vector<Player> players_;
   std::vector<GameObject> platforms_;
   std::vector<GameObject> melee_attack;

@@ -128,6 +128,7 @@ static platformer::Player convert(const ser::Player& src) {
 static ser::GameState convert(const platformer::GameState& src, const bool fixed) {
   ser::GameState dst;
   dst.set_frame(src.frame);
+  dst.set_timestamp(src.timestamp);
 
   for (const auto& player : src.players_)
     dst.mutable_players()->Add(convert(player, fixed));
