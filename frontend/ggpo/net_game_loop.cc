@@ -226,13 +226,11 @@ using frame = duration<uint64_t, std::ratio<1, 60>>;
 
 NetGameLoop::NetGameLoop(InputArgs args,
                          std::shared_ptr<GameState> gs,
-                         std::shared_ptr<std::atomic<int>> tick,
                          std::shared_ptr<std::atomic<int>> p0_input,
                          std::shared_ptr<std::atomic<int>> p1_input,
                          std::shared_ptr<std::atomic<bool>> running,
                          std::shared_ptr<std::atomic<int>> status)
     : frame_(0 - 1),
-      tick_(tick),
       p0_input_(p0_input),
       p1_input_(p1_input),
       running_(running),
@@ -315,14 +313,13 @@ void NetGameLoop::operator()() {
 
   auto started_time = clock::now();
   auto current_time = clock::now();
-  float frame_time = duration_cast<microseconds>(frame(1)).count();
+  const float frame_time = getMicrosecondsInOneTick();
   int update_time = 0;
   int sleep_time = 0;
-  int frame_per_tick, tick_rate;
 
   microseconds running_time;
   frame frames;
-  uint64_t frame_startup_offset;
+  uint64_t startup_offset;
 
   GGPOErrorCode result = GGPO_OK;
   int disconnect_flags;
@@ -332,7 +329,7 @@ void NetGameLoop::operator()() {
   while (running_->load()) {
     running_time = duration_cast<microseconds>(current_time - started_time);
     frames = duration_cast<frame>(running_time);
-    frame_startup_offset =
+    startup_offset =
         running_time.count() - duration_cast<microseconds>(frames).count();
 
     if (frame_ + 1 != frames.count())
@@ -340,7 +337,6 @@ void NetGameLoop::operator()() {
 
     if (frame_ != frames.count()) {
       frame_ = frames.count();
-      tick_->store(frame_);
 
       {  // update
         result = ggpo_idle(ggpo, sleep_time);
@@ -378,13 +374,7 @@ void NetGameLoop::operator()() {
       }
 
       update_time = duration_cast<microseconds>(clock::now() - current_time).count();
-      sleep_time =
-          std::ceil((frame_time - update_time - frame_startup_offset) / 1000);
-      
-      debug("frame {:4d}, update_time {:4d}, sleep_time {:.2f}!\n",
-            frame_,
-            update_time,
-            frame_time - update_time - frame_startup_offset);
+      sleep_time = std::ceil((frame_time - update_time - startup_offset) / 1000);
       if (sleep_time > 0) Sleep(sleep_time);
       current_time = clock::now();
     } else {
@@ -395,6 +385,10 @@ void NetGameLoop::operator()() {
   ggpo_close_session(ggpo);
   timeEndPeriod(1);
   status_->store(2);
+};
+
+long long NetGameLoop::getMicrosecondsInOneTick() {
+  return duration_cast<microseconds>(frame(1)).count();
 };
 
 };  // namespace platformer

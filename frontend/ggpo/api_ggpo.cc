@@ -16,8 +16,6 @@
 
 namespace {
 auto gs = std::make_shared<platformer::GameState>();
-
-auto tick = std::make_shared<std::atomic<int>>(0);
 auto p0_input = std::make_shared<std::atomic<int>>(0);
 auto p1_input = std::make_shared<std::atomic<int>>(0);
 InputArgs args;
@@ -72,8 +70,7 @@ void StartGame() {
     running->store(true);
     stopped = false;
     std::thread([] {
-      platformer::NetGameLoop loop(
-          args, gs, tick, p0_input, p1_input, running, status);
+      platformer::NetGameLoop loop(args, gs, p0_input, p1_input, running, status);
       loop();
       stopped = true;
     }).detach();
@@ -96,10 +93,13 @@ void Update(const Input input) {
   (args.local ? p0_input : p1_input)->store(input_bitset.to_ullong());
 };
 
-void GetState(uint8_t* buf, int* length, float* dx) {
+void GetState(uint8_t* buf, int* length) {
   *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
-  *dx = 1;
 }
+
+long long getMicrosecondsInOneTick() {
+  return platformer::NetGameLoop::getMicrosecondsInOneTick();
+};
 
 GameStatus GetStatus() {
   switch (status->load()) {

@@ -58,5 +58,4 @@ message GameState{
     repeated Player players = 2;
     repeated GameObject platforms = 3;
     repeated GameObject melee_attacks = 4;
-    uint64 timestamp = 5;
 }

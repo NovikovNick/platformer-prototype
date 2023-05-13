@@ -14,14 +14,13 @@ class CoreGameLoop {
 
  public:
   CoreGameLoop(std::shared_ptr<GameState> gs,
-               std::shared_ptr<std::atomic<int>> tick,
                std::shared_ptr<std::atomic<int>> p0_input,
                std::shared_ptr<std::atomic<int>> p1_input,
                std::shared_ptr<std::atomic<bool>> running);
 
   void operator()();
 
-  static uint64_t getMicrosecondsInOneFrame();
+  static long long getMicrosecondsInOneTick();
 };
 
 };      // namespace platformer

@@ -29,11 +29,10 @@ void Scene::init(const ShowcaseContext ctx) {
 }
 
 void Scene::update(const ser::GameState& gs) {
-  if (curr_game_state.frame() != gs.frame()) {
-    prev_game_state = std::move(curr_game_state);
-    curr_game_state = gs;
-  }
+  prev_game_state = std::move(curr_game_state);
+  curr_game_state = gs;
 }
+
 void Scene::update(const float dx) {
   auto& gs = curr_game_state;
   if (prev_game_state.players_size() <= 0) return;

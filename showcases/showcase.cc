@@ -77,7 +77,15 @@ int main(int argc, char* argv[]) {
   ser::GameState gs;
   Input input{false, false, false, false, false, false};
   int length;
-  float dx;
+
+  // lerp
+  using namespace std::chrono;
+  auto t0 = steady_clock::now();
+  auto t1 = t0;
+  float dx = 0;
+  int prev_frame = 0;
+  const float tick = getMicrosecondsInOneTick();
+
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
     info.update(tick_index, gs.frame());
@@ -88,7 +96,19 @@ int main(int argc, char* argv[]) {
     Update(input);
 
     // write game state to buffer
-    GetState(ctx.game_state_buf, &length, &dx);
+    GetState(ctx.game_state_buf, &length);
+
+    t1 = steady_clock::now();
+    if (prev_frame != gs.frame()) {
+      dx = 0;
+      prev_frame = gs.frame();
+      scena.update(gs);
+    } else {
+      dx += duration_cast<microseconds>(t1 - t0).count() / tick;
+    }
+    t0 = t1;
+    // platformer::debug("frame = {:5d}, dx = {}\n", prev_frame, dx);
+
     info.update(ser_index, length);
 
     // deserialize game state from buffer
@@ -121,7 +141,6 @@ int main(int argc, char* argv[]) {
     }
 
     // render
-    scena.update(gs);
     scena.update(dx);
     window.clear(kBGColor);
     window.draw(scena);

@@ -53,7 +53,9 @@ EXPORT void StopGame();
 
 EXPORT void Update(const Input input);
 
-EXPORT void GetState(unsigned char* buf, int* length, float* dx);
+EXPORT void GetState(unsigned char* buf, int* length);
+
+EXPORT long long getMicrosecondsInOneTick();
 
 EXPORT GameStatus GetStatus();
 

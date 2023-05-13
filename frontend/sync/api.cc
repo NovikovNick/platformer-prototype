@@ -47,10 +47,11 @@ void Update(const Input input) {
   gs.update(input_bitset.to_ullong(), 0);
 };
 
-void GetState(uint8_t *buf, int *length, float *dx) {
+void GetState(uint8_t *buf, int *length) {
   *length = platformer::Serializer::serialize(gs, buf);
-  *dx = 1;
 }
+
+long long getMicrosecondsInOneTick() { return 1; };
 
 GameStatus GetStatus() { return running ? GameStatus::RUN : GameStatus::STOPED; };
 
