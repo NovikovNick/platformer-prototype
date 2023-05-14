@@ -14,7 +14,9 @@ bool running = false;
 std::string local_public_ip = "disabled";
 }  // namespace
 
-void Init(const Location loc) {
+void Init(const GameContext ctx) {};
+
+void SetLocation(const Location loc){
   gs = {};
   gs.setPlayerPosition(0, loc.position_1st_player.x, loc.position_1st_player.y);
   gs.setPlayerPosition(1, loc.position_2nd_player.x, loc.position_2nd_player.y);
@@ -28,8 +30,6 @@ void Init(const Location loc) {
 Endpoint GetPublicEndpoint(const int local_port) {
   return {local_public_ip.c_str(), 0};
 };
-
-void RegisterPeer(const Endpoint remote_endpoint){};
 
 void StartGame() { running = true; };
 

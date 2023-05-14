@@ -28,8 +28,8 @@ target_sources(frontend_async
 		"api.h"
 	PRIVATE
 		"async/api_async.cc"
-		"async/core_game_loop.h"
-		"async/core_game_loop.cc")
+		"game_loop_ticker.h"
+		"impl/game_loop_ticker.cc")
 target_link_libraries(frontend_async 
     PRIVATE
         Platformer::core

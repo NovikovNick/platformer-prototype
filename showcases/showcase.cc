@@ -46,18 +46,18 @@ int main(int argc, char* argv[]) {
 
       // wait until GetStatus() return STOPED
       using namespace std::chrono_literals;
-      if (!wait(32ms, [] { return GetStatus() != GameStatus::STOPED; })) {
+      if (!wait(100ms, [] { return GetStatus() != GameStatus::STOPED; })) {
         platformer::debug("Unable to stop game loop. Terminate");
         exit(0);
       }
 
       // init game state
-      Init(ctx.getLocation());
+      SetLocation(ctx.getLocation());
 
       scena.init(ctx);
 
-      // register remote enpoint
-      RegisterPeer(ctx.getRemoteEndpoint());
+      // register remote enpoint and tick rate
+      Init({ctx.tick_rate, ctx.getRemoteEndpoint()});
 
       // start new game loop
       StartGame();
@@ -84,7 +84,6 @@ int main(int argc, char* argv[]) {
   auto t1 = t0;
   float dx = 0;
   int prev_frame = 0;
-  const float tick = getMicrosecondsInOneTick();
 
   while (window.isOpen()) {
     info.update(status_index, toString(GetStatus()));
@@ -104,10 +103,11 @@ int main(int argc, char* argv[]) {
       prev_frame = gs.frame();
       scena.update(gs);
     } else {
-      dx += duration_cast<microseconds>(t1 - t0).count() / tick;
+      dx += duration_cast<microseconds>(t1 - t0).count() /
+            static_cast<float>(getMicrosecondsInOneTick());
     }
     t0 = t1;
-    // platformer::debug("frame = {:5d}, dx = {}\n", prev_frame, dx);
+    platformer::debug("frame = {:5d}, dx = {}\n", prev_frame, dx);
 
     info.update(ser_index, length);
 

@@ -17,8 +17,11 @@ struct ShowcaseContext {
   char remote_public_ip[32]{0};
   char remote_public_ip_val[32]{0};
 
+  int tick_rate;
+
   ShowcaseContext()
-      : active_player_id(0),
+      : tick_rate(60),
+        active_player_id(0),
         position_1st_player({192, 704}),
         position_2nd_player({96, 704}),
         platforms({{0, 0, 864, 32, {0, 864}},

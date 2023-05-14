@@ -41,11 +41,16 @@ struct Location {
   unsigned long long platforms_count;
 };
 
-EXPORT void Init(const Location location);
+struct GameContext {
+  int tick_rate;
+  Endpoint peer_endpoint;
+};
+
+EXPORT void Init(const GameContext context);
+
+EXPORT void SetLocation(const Location location);
 
 EXPORT Endpoint GetPublicEndpoint(const int local_port);
-
-EXPORT void RegisterPeer(const Endpoint peer_endpoint);
 
 EXPORT void StartGame();
 

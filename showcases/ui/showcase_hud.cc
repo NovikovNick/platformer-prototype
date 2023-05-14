@@ -25,6 +25,17 @@ void ShowcaseHUD::draw(sf::RenderWindow& window,
   ImGui::InputText(
       "Your public ip:port", ctx.local_public_ip, 22, ImGuiInputTextFlags_ReadOnly);
   ImGui::InputText("Peer public ip:port", ctx.remote_public_ip, 22);
+
+  if (ImGui::BeginCombo("Tickrate", std::to_string(ctx.tick_rate).c_str())) {
+    for (int i = 10; i <= 60; i += 10) {
+      bool isSelected = ctx.tick_rate == i;
+      if (ImGui::Selectable(std::to_string(i).c_str(), isSelected))
+        ctx.tick_rate = i;
+      if (isSelected) ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+
   if (ImGui::BeginCombo("Player",
                         player_select_labels_[ctx.active_player_id].c_str())) {
     for (int i = 0; i < player_select_labels_.size(); ++i) {
@@ -35,7 +46,9 @@ void ShowcaseHUD::draw(sf::RenderWindow& window,
     }
     ImGui::EndCombo();
   }
+
   if (ImGui::Button("Start session")) cb.on_restart_handler();
+
   ImGui::End();
 
   ImGui::SFML::Render(window);

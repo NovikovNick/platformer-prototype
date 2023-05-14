@@ -29,7 +29,13 @@ PlatformerErrorCode error_code = PlatformerErrorCode::OK;
 std::string mapped_public_ip;
 }  // namespace
 
-void Init(const Location loc) {
+void Init(const GameContext ctx) {
+  args.remote_port = ctx.peer_endpoint.remote_port;
+  memset(args.ip, '\0', 32);
+  strcpy(args.ip, ctx.peer_endpoint.remote_host);
+};
+
+void SetLocation(const Location loc) {
   args.local = loc.is_1st_player;
   gs = std::make_shared<platformer::GameState>();
   gs->setPlayerPosition(0, loc.position_1st_player.x, loc.position_1st_player.y);
@@ -56,12 +62,6 @@ Endpoint GetPublicEndpoint(const int local_port) {
     error_code = PlatformerErrorCode::UNEXPECTED_ERROR;
   }
   return {mapped_public_ip.c_str(), 0};
-};
-
-void RegisterPeer(const Endpoint remote_endpoint) {
-  args.remote_port = remote_endpoint.remote_port;
-  memset(args.ip, '\0', 32);
-  strcpy(args.ip, remote_endpoint.remote_host);
 };
 
 void StartGame() {

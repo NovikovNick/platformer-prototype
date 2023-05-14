@@ -8,7 +8,7 @@
 #include <thread>
 
 #include "../api.h"
-#include "core_game_loop.h"
+#include "../game_loop_ticker.h"
 #include "game_state.h"
 
 namespace {
@@ -20,9 +20,15 @@ std::mutex m;
 auto running = std::make_shared<std::atomic<bool>>(false);
 auto stopped = true;
 std::string local_public_ip = "disabled";
+
+int tick_rate = 60;
+long long micro_in_one_tick = 1;
+auto on_tick = [] { gs->update(p0_input->load(), p1_input->load()); };
 }  // namespace
 
-void Init(const Location loc) {
+void Init(const GameContext ctx) { tick_rate = ctx.tick_rate; };
+
+void SetLocation(const Location loc) {
   // args.local = location.is_1st_player;
   gs = std::make_shared<platformer::GameState>();
   gs->setPlayerPosition(0, loc.position_1st_player.x, loc.position_1st_player.y);
@@ -38,7 +44,11 @@ Endpoint GetPublicEndpoint(const int local_port) {
   return {local_public_ip.c_str(), 0};
 };
 
-void RegisterPeer(const Endpoint remote_endpoint){};
+template <typename GAME_LOOP>
+void start(GAME_LOOP loop) {
+  micro_in_one_tick = loop.getMicrosecondsInOneTick();
+  loop();
+};
 
 void StartGame() {
   std::scoped_lock lock(m);
@@ -47,8 +57,14 @@ void StartGame() {
     stopped = false;
 
     std::thread([] {
-      platformer::CoreGameLoop loop(gs, p0_input, p1_input, running);
-      loop();
+      switch (tick_rate) {
+        case 10: start(platformer::GameLoopTicker<10>(on_tick, running)); break;
+        case 20: start(platformer::GameLoopTicker<20>(on_tick, running)); break;
+        case 30: start(platformer::GameLoopTicker<30>(on_tick, running)); break;
+        case 40: start(platformer::GameLoopTicker<40>(on_tick, running)); break;
+        case 50: start(platformer::GameLoopTicker<50>(on_tick, running)); break;
+        case 60: start(platformer::GameLoopTicker<60>(on_tick, running)); break;
+      }
       stopped = true;
     }).detach();
   }
@@ -75,10 +91,7 @@ void GetState(uint8_t *buf, int *length) {
   *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
 }
 
-
-long long getMicrosecondsInOneTick(){
-  return platformer::CoreGameLoop::getMicrosecondsInOneTick();
-};
+long long getMicrosecondsInOneTick() { return micro_in_one_tick; };
 
 GameStatus GetStatus() {
   using namespace std::chrono_literals;
