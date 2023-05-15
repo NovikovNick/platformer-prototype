@@ -1,3 +1,4 @@
+#include <game_loop_ticker.h>
 #include <schema.pb.h>
 #include <serializer.h>
 #include <util.h>
@@ -9,10 +10,13 @@
 
 #include "../api.h"
 #include "game_state.h"
-#include "net_game_loop.h"
+#include "input_args.h"
+// clang-format off
 #include "network/exception.h"
 #include "network/stun_client.h"
 #include "network/udp_socket.h"
+#include "ggpo_client.h"
+// clang-format on
 
 namespace {
 auto gs = std::make_shared<platformer::GameState>();
@@ -27,9 +31,14 @@ auto status = std::make_shared<std::atomic<int>>(2);
 
 PlatformerErrorCode error_code = PlatformerErrorCode::OK;
 std::string mapped_public_ip;
+
+int tick_rate = 60;
+long long micro_in_one_tick = 1;
 }  // namespace
 
 void Init(const GameContext ctx) {
+  tick_rate = ctx.tick_rate;
+
   args.remote_port = ctx.peer_endpoint.remote_port;
   memset(args.ip, '\0', 32);
   strcpy(args.ip, ctx.peer_endpoint.remote_host);
@@ -64,14 +73,43 @@ Endpoint GetPublicEndpoint(const int local_port) {
   return {mapped_public_ip.c_str(), 0};
 };
 
+template <int TICK_RATE>
+void start() {
+  platformer::UpdateHolder holder;
+  platformer::GameLoopTicker<TICK_RATE> loop(
+      [&holder = holder] {
+        auto input = (args.local ? p0_input : p1_input)->load();
+        if (holder.update(input, 8)) status->store(0);  // sleep_time = 10
+      },
+      running);
+  micro_in_one_tick = loop.getMicrosecondsInOneTick();
+
+  platformer::debug("Game session started with tick rate: {}\n", TICK_RATE);
+  loop();
+};
+
 void StartGame() {
   std::scoped_lock lock(m);
   if (!running->load() && stopped) {
     running->store(true);
     stopped = false;
+
     std::thread([] {
-      platformer::NetGameLoop loop(args, gs, p0_input, p1_input, running, status);
-      loop();
+      platformer::startGameSession(args, gs);
+      status->store(1);
+      platformer::debug("Connecting to peers\n");
+
+      switch (tick_rate) {
+        case 10: start<10>(); break;
+        case 20: start<20>(); break;
+        case 30: start<30>(); break;
+        case 40: start<40>(); break;
+        case 50: start<50>(); break;
+        case 60: start<60>(); break;
+      }
+
+      platformer::stopGameSession();
+      status->store(2);
       stopped = true;
     }).detach();
   }
@@ -97,9 +135,7 @@ void GetState(uint8_t* buf, int* length) {
   *length = platformer::Serializer::serialize(gs->getStateProjection(), buf);
 }
 
-long long getMicrosecondsInOneTick() {
-  return platformer::NetGameLoop::getMicrosecondsInOneTick();
-};
+long long getMicrosecondsInOneTick() { return micro_in_one_tick; };
 
 GameStatus GetStatus() {
   switch (status->load()) {

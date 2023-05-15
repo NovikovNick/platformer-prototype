@@ -1,13 +1,15 @@
-#include "net_game_loop.h"
-
+#ifndef PLATFORMER_GGPO_CLIENT_H
+#define PLATFORMER_GGPO_CLIENT_H
 #include <ggponet.h>
 #include <serializer.h>
 #include <util.h>
 #include <windows.h>
+#include <timeapi.h>
 
 #include <chrono>
 #include <thread>
 
+#include "input_args.h"
 #include "nongamestate.h"
 
 namespace {
@@ -220,21 +222,7 @@ void print(const uint64_t frame, GGPOErrorCode result) {
 
 namespace platformer {
 
-using namespace std::chrono;
-using clock = high_resolution_clock;
-using frame = duration<uint64_t, std::ratio<1, 60>>;
-
-NetGameLoop::NetGameLoop(InputArgs args,
-                         std::shared_ptr<GameState> gs,
-                         std::shared_ptr<std::atomic<int>> p0_input,
-                         std::shared_ptr<std::atomic<int>> p1_input,
-                         std::shared_ptr<std::atomic<bool>> running,
-                         std::shared_ptr<std::atomic<int>> status)
-    : frame_(0 - 1),
-      p0_input_(p0_input),
-      p1_input_(p1_input),
-      running_(running),
-      status_(status) {
+void startGameSession(InputArgs args, std::shared_ptr<GameState> gs) {
   game_state = gs;
 
   GGPOSessionCallbacks cb = {0};
@@ -296,99 +284,47 @@ NetGameLoop::NetGameLoop(InputArgs args,
       ngs.players[i].connect_progress = 0;
     }
   }
-  status_->store(1);
+};
 
-  debug("Connecting to peers\n");
-}
-NetGameLoop::~NetGameLoop() { WSACleanup(); };
+void stopGameSession() { ggpo_close_session(ggpo); };
 
-void NetGameLoop::operator()() {
-  if (timeBeginPeriod(1) == TIMERR_NOERROR) {
-    debug("Minimum resolution for periodic timers has been updated to 1ms\n");
-  } else {
-    debug(
-        "Unable to set minimum resolution for periodic timers in windows! App "
-        "will work in busy loop.\n");
-  }
-
-  auto started_time = clock::now();
-  auto current_time = clock::now();
-  const float frame_time = getMicrosecondsInOneTick();
-  int update_time = 0;
-  int sleep_time = 0;
-
-  microseconds running_time;
-  frame frames;
-  uint64_t startup_offset;
-
+class UpdateHolder {
   GGPOErrorCode result = GGPO_OK;
   int disconnect_flags;
   int inputs[2] = {0};
   int input;
 
-  while (running_->load()) {
-    running_time = duration_cast<microseconds>(current_time - started_time);
-    frames = duration_cast<frame>(running_time);
-    startup_offset =
-        running_time.count() - duration_cast<microseconds>(frames).count();
+ public:
+  // startGameSession??
 
-    if (frame_ + 1 != frames.count())
-      debug("Frame mismatch {} => {}!\n", frame_, frames.count());
+  bool update(const int player_input, const int sleep_time) {  // update
+    result = ggpo_idle(ggpo, sleep_time);
 
-    if (frame_ != frames.count()) {
-      frame_ = frames.count();
-
-      {  // update
-        result = ggpo_idle(ggpo, sleep_time);
-
-        if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
-          input = local_player == 0 ? p0_input_->load() : p1_input_->load();
-          result = ggpo_add_local_input(
-              ggpo, ngs.local_player_handle, &input, sizeof(input));
-        }
-        // print(frame_, result);
-
-        // synchronize these inputs with ggpo.  If we have enough input to
-        // proceed ggpo will modify the input list with the correct inputs to
-        // use and return 1.
-        if (GGPO_SUCCEEDED(result)) {
-          result = ggpo_synchronize_input(
-              ggpo, (void *)inputs, sizeof(int) * 2, &disconnect_flags);
-          if (GGPO_SUCCEEDED(result)) {
-            // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
-            // the game by 1 frame using those inputs.
-            game_state->update(inputs[0], inputs[1]);
-            status_->store(0);
-
-            // update the checksums to display in the top of the window.  this
-            // helps to detect desyncs.
-            ngs.now.framenumber = frame_;
-            /*ngs.now.checksum =
-                fletcher32_checksum((short *)&gs, sizeof(gs) / 2);
-            if ((gs._framenumber % 90) == 0) {
-              ngs.periodic = ngs.now;
-            }*/
-            ggpo_advance_frame(ggpo);
-          }
-        }
-      }
-
-      update_time = duration_cast<microseconds>(clock::now() - current_time).count();
-      sleep_time = std::ceil((frame_time - update_time - startup_offset) / 1000);
-      if (sleep_time > 0) Sleep(sleep_time);
-      current_time = clock::now();
-    } else {
-      Sleep(1);
-      current_time = clock::now();
+    if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
+      input = player_input;
+      result =
+          ggpo_add_local_input(ggpo, ngs.local_player_handle, &input, sizeof(input));
     }
+
+    // synchronize these inputs with ggpo.  If we have enough input to
+    // proceed ggpo will modify the input list with the correct inputs to
+    // use and return 1.
+    if (GGPO_SUCCEEDED(result)) {
+      result = ggpo_synchronize_input(
+          ggpo, (void *)inputs, sizeof(int) * 2, &disconnect_flags);
+      if (GGPO_SUCCEEDED(result)) {
+        // inputs[0] and inputs[1] contain the inputs for p1 and p2. Advance
+        // the game by 1 frame using those inputs.
+        game_state->update(inputs[0], inputs[1]);
+
+        // ngs.now.framenumber = frame_;
+        ggpo_advance_frame(ggpo);
+        return true;
+      }
+    }
+    return false;
   }
-  ggpo_close_session(ggpo);
-  timeEndPeriod(1);
-  status_->store(2);
 };
 
-long long NetGameLoop::getMicrosecondsInOneTick() {
-  return duration_cast<microseconds>(frame(1)).count();
-};
-
-};  // namespace platformer
+};      // namespace platformer
+#endif  // PLATFORMER_GGPO_CLIENT_H

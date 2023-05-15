@@ -44,9 +44,11 @@ Endpoint GetPublicEndpoint(const int local_port) {
   return {local_public_ip.c_str(), 0};
 };
 
-template <typename GAME_LOOP>
-void start(GAME_LOOP loop) {
+template <int TICK_RATE>
+void start() {
+  platformer::GameLoopTicker<TICK_RATE> loop(on_tick, running);
   micro_in_one_tick = loop.getMicrosecondsInOneTick();
+  platformer::debug("Game session started with tick rate: {}\n", TICK_RATE);
   loop();
 };
 
@@ -58,12 +60,12 @@ void StartGame() {
 
     std::thread([] {
       switch (tick_rate) {
-        case 10: start(platformer::GameLoopTicker<10>(on_tick, running)); break;
-        case 20: start(platformer::GameLoopTicker<20>(on_tick, running)); break;
-        case 30: start(platformer::GameLoopTicker<30>(on_tick, running)); break;
-        case 40: start(platformer::GameLoopTicker<40>(on_tick, running)); break;
-        case 50: start(platformer::GameLoopTicker<50>(on_tick, running)); break;
-        case 60: start(platformer::GameLoopTicker<60>(on_tick, running)); break;
+        case 10: start<10>(); break;
+        case 20: start<20>(); break;
+        case 30: start<30>(); break;
+        case 40: start<40>(); break;
+        case 50: start<50>(); break;
+        case 60: start<60>(); break;
       }
       stopped = true;
     }).detach();

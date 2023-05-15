@@ -45,9 +45,10 @@ set_property(TARGET frontend_async PROPERTY
 set(GGPO_SRC
 	"ggpo/api_ggpo.cc"
 	"ggpo/input_args.h"
-	"ggpo/net_game_loop.h"
-	"ggpo/net_game_loop.cc"
-	"ggpo/nongamestate.h")
+	"ggpo/nongamestate.h"
+	"ggpo/ggpo_client.h"
+	"game_loop_ticker.h"
+	"impl/game_loop_ticker.cc")
 	
 set(NETWORK_SRC
 	"ggpo/network/endpoint.h"

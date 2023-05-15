@@ -47,6 +47,9 @@ void ShowcaseHUD::draw(sf::RenderWindow& window,
     ImGui::EndCombo();
   }
 
+  ImGui::Checkbox(std::string("Log delta time").c_str(), &ctx.log_dx);
+  ImGui::Checkbox(std::string("Log player state").c_str(), &ctx.log_player_state);
+
   if (ImGui::Button("Start session")) cb.on_restart_handler();
 
   ImGui::End();
