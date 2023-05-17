@@ -1,6 +1,7 @@
 #ifndef PLATFORMER_GAME_STATE_SERVICE_H
 #define PLATFORMER_GAME_STATE_SERVICE_H
 
+#include <functional>
 #include <vector>
 
 #include "game_object.h"

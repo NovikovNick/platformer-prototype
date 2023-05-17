@@ -44,12 +44,12 @@ int main() {
   for (int i = 0; i < n; ++i) {
     // reproduce rollback: get saved serialized stated and desirialize it to
     // current gs
-    auto [buf, l, checksum, input1, input2, p1, p2] = states[i];
-    Serializer::deserialize(gs, buf, l);
+    auto [buf, length, checksum, input1, input2, p1, p2] = states[i];
+    Serializer::deserialize(gs, buf, length);
     for (int j = i + 1; j < n; ++j) {
       // Act: Perform advance frame operation
       gs->update(states[j - 1].input1, states[j - 1].input2);
-      if (!Serializer::serialize(gs, &out, &l)) {
+      if (!Serializer::serialize(gs, &out, &length)) {
         debug("Unable to serialize from {} to {}!\n", i, j);
         return 1;
       }
@@ -72,7 +72,7 @@ int main() {
       }
 
       // Check advansed checksum and expected saved checksum
-      if (states[j].checksum != fletcher32_checksum((short*)out, l / 2)) {
+      if (states[j].checksum != fletcher32_checksum((short*)out, length / 2)) {
         Serializer::deserialize(expected_gs, states[j].buf, states[j].length);
         debug("Failed checksum: from {} to {}!\n", i, j);
         print("EXPECTED", expected_gs);
@@ -80,7 +80,10 @@ int main() {
         return 1;
       }
     }
-    debug("{} rollback synchronised with state {} \n", i, static_cast<int>(p1));
+    debug("{} rollback synchronised with state {}. Length: {}bytes \n",
+          i,
+          static_cast<int>(p1),
+          length);
   }
   debug("All rollback synchronised!\n");
 
@@ -98,8 +101,7 @@ int getRandomInput() {
   return input.to_ullong();
 }
 
-void print(const std::string& title,
-           std::shared_ptr<platformer::GameState> gs) {
+void print(const std::string& title, std::shared_ptr<platformer::GameState> gs) {
   using namespace platformer;
   debug("\n======= {} FRAME#{} =======\n", title, gs->frame);
   for (int i = 0; i < 2; ++i) {
@@ -109,8 +111,8 @@ void print(const std::string& title,
     auto vel_x = static_cast<float>(p.obj.velocity.x());
     auto vel_y = static_cast<float>(p.obj.velocity.y());
 
-    debug("Player#{}. State {}#{:4d}. ", i, static_cast<int>(p.state),
-          p.state_frame);
+    debug(
+        "Player#{}. State {}#{:4d}. ", i, static_cast<int>(p.state), p.state_frame);
     debug("Pos [{:8.4f}, {:8.4f}]  ", pos_x, pos_y);
     debug("Vel [{:8.4f}, {:8.4f}]\n", vel_x, vel_y);
   }

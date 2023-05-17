@@ -23,7 +23,7 @@ class GameLoopTicker {
  public:
   GameLoopTicker(std::function<void()> on_tick,
                std::shared_ptr<std::atomic<bool>> running);
-
+  ~GameLoopTicker();
   void operator()();
 
   long long getMicrosecondsInOneTick() const { return tick_time_; }

@@ -170,7 +170,7 @@ struct player_locomotion_table {
         jump_s + none[onGround] = landing_s,
 
         falling_s + none[onGround] = landing_s,
-        falling_s + input_up[inAir && FrameLessOrEq{2}] = jump_s);
+        falling_s + input_up[inAir && FrameLessOrEq{5}] = jump_s);
     // clang-format on
   }
 };

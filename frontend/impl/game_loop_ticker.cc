@@ -14,18 +14,22 @@ using clock = steady_clock;
 template <int TICK_RATE>
 GameLoopTicker<TICK_RATE>::GameLoopTicker(std::function<void()> on_tick,
                                           std::shared_ptr<std::atomic<bool>> running)
-    : on_tick_(on_tick), tick_(0 - 1), running_(running){};
-
-template <int TICK_RATE>
-void GameLoopTicker<TICK_RATE>::operator()() {
+    : on_tick_(on_tick), tick_(0 - 1), running_(running) {
   if (timeBeginPeriod(1) == TIMERR_NOERROR) {
     debug("Minimum resolution for periodic timers has been updated to 1ms\n");
   } else {
-    debug(
-        "Unable to set minimum resolution for periodic timers in windows! App "
-        "will work in busy loop.\n");
+    debug("Unable to set minimum resolution for periodic timers in windows!\n");
   }
+};
 
+template <int TICK_RATE>
+GameLoopTicker<TICK_RATE>::~GameLoopTicker() {
+  timeEndPeriod(1);
+  debug("Minimum resolution for periodic timers has been resetted\n");
+}
+
+template <int TICK_RATE>
+void GameLoopTicker<TICK_RATE>::operator()() {
   auto started_time = clock::now();
   auto current_time = started_time;
   int update_time = 0;
@@ -60,7 +64,6 @@ void GameLoopTicker<TICK_RATE>::operator()() {
       debug("Sleep Frame {} \n", tick_);
     }
   }
-  timeEndPeriod(1);
 }
 
 template class GameLoopTicker<10>;

@@ -20,8 +20,9 @@ void ShowcaseHUD::draw(sf::RenderWindow& window,
                        ShowcaseContext& ctx,
                        ShowcaseCallback& cb) {
   ImGui::SFML::Update(window, deltaClock.restart());
-
-  ImGui::Begin("Network settings");
+  ImGui::SetNextWindowPos({350, 0});
+  ImGui::SetNextWindowContentSize({530, 200});
+  ImGui::Begin("Settings");
   ImGui::InputText(
       "Your public ip:port", ctx.local_public_ip, 22, ImGuiInputTextFlags_ReadOnly);
   ImGui::InputText("Peer public ip:port", ctx.remote_public_ip, 22);
