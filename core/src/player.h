@@ -36,6 +36,7 @@ class Player {
   Player();
   void updateState(const PlayerState state);
   bool is(const PlayerState state) const;
+  bool isCrouch() const;
 };
 
 };      // namespace platformer

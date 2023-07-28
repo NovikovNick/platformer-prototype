@@ -15,7 +15,8 @@
 void handleKeyboardInput(sf::RenderWindow& window,
                          Input& input,
                          platformer::ShowcaseCallback& cb,
-                         platformer::ShowcaseHUD& hud);
+                         platformer::ShowcaseHUD& hud,
+                         platformer::ShowcaseContext& ctx);
 
 int main(int argc, char* argv[]) {
   const static sf::Color kBGColor(35, 35, 35);
@@ -89,7 +90,7 @@ int main(int argc, char* argv[]) {
     info.update(status_index, toString(GetStatus()));
     info.update(tick_index, gs.frame());
 
-    handleKeyboardInput(window, input, cb, hud);
+    handleKeyboardInput(window, input, cb, hud, ctx);
 
     // update input
     Update(input);
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
     if (is_new_tick) {
       dx = 0;
       prev_frame = gs.frame();
-      scena.update(gs);
+      scena.update(gs, ctx);
     } else {
       dx += duration_cast<microseconds>(t1 - t0).count() /
             static_cast<float>(getMicrosecondsInOneTick());
@@ -161,11 +162,11 @@ int main(int argc, char* argv[]) {
 void handleKeyboardInput(sf::RenderWindow& window,
                          Input& input,
                          platformer::ShowcaseCallback& cb,
-                         platformer::ShowcaseHUD& hud) {
+                         platformer::ShowcaseHUD& hud,
+                         platformer::ShowcaseContext& ctx) {
   sf::Event event;
   while (window.pollEvent(event)) {
     hud.handleEvent(window, event);
-
     switch (event.type) {
       case sf::Event::Closed: window.close(); break;
       case sf::Event::KeyPressed:
@@ -174,6 +175,7 @@ void handleKeyboardInput(sf::RenderWindow& window,
           case sf::Keyboard::D: input.rightPressed = true; break;
           case sf::Keyboard::W: input.upPressed = true; break;
           case sf::Keyboard::S: input.downPressed = true; break;
+          case sf::Keyboard::LControl: ctx.ctrl_pressed = true; break;
         }
         break;
       case sf::Event::KeyReleased:
@@ -182,19 +184,39 @@ void handleKeyboardInput(sf::RenderWindow& window,
           case sf::Keyboard::D: input.rightPressed = false; break;
           case sf::Keyboard::W: input.upPressed = false; break;
           case sf::Keyboard::S: input.downPressed = false; break;
+          case sf::Keyboard::LControl: ctx.ctrl_pressed = false; break;
         }
         break;
       case sf::Event::MouseButtonPressed:
         if (event.mouseButton.button == sf::Mouse::Left)
           input.leftMouseClicked = true;
-        if (event.mouseButton.button == sf::Mouse::Right)
+        if (event.mouseButton.button == sf::Mouse::Right) {
           input.rightMouseClicked = true;
+          ctx.right_mouse_pressed = true;
+        }
+
         break;
       case sf::Event::MouseButtonReleased:
-        if (event.mouseButton.button == sf::Mouse::Left)
+        if (event.mouseButton.button == sf::Mouse::Left) {
           input.leftMouseClicked = false;
-        if (event.mouseButton.button == sf::Mouse::Right)
+        }
+        if (event.mouseButton.button == sf::Mouse::Right) {
           input.rightMouseClicked = false;
+          ctx.right_mouse_pressed = false;
+        }
+        break;
+
+      case sf::Event::MouseMoved:
+        if (ctx.right_mouse_pressed) {
+          ctx.screen_offset_x -= ctx.prev_mouse_x - event.mouseMove.x;
+          ctx.screen_offset_y -= ctx.prev_mouse_y - event.mouseMove.y;
+        }
+        ctx.prev_mouse_x = event.mouseMove.x;
+        ctx.prev_mouse_y = event.mouseMove.y;
+        break;
+
+      case sf::Event::MouseWheelScrolled:
+        ctx.scale += event.mouseWheelScroll.delta > 0 ? 0.125 : -0.125;
         break;
     }
   }

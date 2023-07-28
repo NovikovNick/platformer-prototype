@@ -9,7 +9,7 @@ Scene::Scene(sf::Color fst_color, sf::Color snd_color, sf::Color trd_color)
       shapes_(std::vector<platformer::RectShape>()),
       grid_(platformer::ScalableGrid(32)) {}
 
-void Scene::init(const ShowcaseContext ctx) {
+void Scene::init(const ShowcaseContext& ctx) {
   shapes_.clear();
 
   shapes_.emplace_back(
@@ -28,9 +28,12 @@ void Scene::init(const ShowcaseContext ctx) {
   }
 }
 
-void Scene::update(const ser::GameState& gs) {
+void Scene::update(const ser::GameState& gs, const ShowcaseContext& ctx) {
   prev_game_state = std::move(curr_game_state);
   curr_game_state = gs;
+  pivot_x = ctx.screen_offset_x;
+  pivot_y = ctx.screen_offset_y;
+  scale = ctx.scale;
 }
 
 void Scene::update(const float dx) {
@@ -44,11 +47,14 @@ void Scene::update(const float dx) {
 
     shapes_[i].update(
         std::lerp(
-            prev_player.obj().position().x(), curr_player.obj().position().x(), dx),
+            prev_player.obj().position().x(), 
+            curr_player.obj().position().x(), dx) * scale + pivot_x,
         std::lerp(
-            prev_player.obj().position().y(), curr_player.obj().position().y(), dx));
+            prev_player.obj().position().y(),
+            curr_player.obj().position().y(), dx) * -scale + pivot_y);
 
-    shapes_[i].updateSize(prev_player.obj().width(), prev_player.obj().height());
+    shapes_[i].updateSize(prev_player.obj().width() * scale,
+                          prev_player.obj().height() * -scale);
     shapes_[i].update(1);
 
     shapes_[i].update(prev_player.on_damage() ? sf::Color::Red : sf::Color::White);
@@ -68,16 +74,18 @@ void Scene::update(const float dx) {
 
   for (int i = offset; i < gs.melee_attacks_size() + offset; ++i) {
     auto& attack = gs.melee_attacks()[i - offset];
-    shapes_[i].update(attack.position().x(), attack.position().y());
-    shapes_[i].updateSize(attack.width(), attack.height());
+    shapes_[i].update(attack.position().x() * scale + pivot_x,
+                      attack.position().y() * -scale + pivot_y);
+    shapes_[i].updateSize(attack.width() * scale, attack.height() * -scale);
     shapes_[i].update(1);
   }
   offset += gs.players_size();
 
   for (int i = offset; i < gs.platforms_size() + offset; ++i) {
     auto& platform = gs.platforms()[i - offset];
-    shapes_[i].update(platform.position().x(), platform.position().y());
-    shapes_[i].updateSize(platform.width(), platform.height());
+    shapes_[i].update(platform.position().x() * scale + pivot_x,
+                      platform.position().y() * -scale + pivot_y);
+    shapes_[i].updateSize(platform.width() * scale, platform.height() * -scale);
     shapes_[i].update(1);
   }
 }

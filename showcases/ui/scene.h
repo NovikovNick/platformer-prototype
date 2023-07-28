@@ -19,11 +19,13 @@ class Scene : public sf::Drawable {
   std::vector<platformer::RectShape> shapes_;
   int state_key, position_key, velocity_key;
   sf::Color fst_color, snd_color, trd_color;
+  int pivot_x = 0, pivot_y = 0;
+  double scale = 1.0;
 
  public:
   Scene(sf::Color fst_color, sf::Color snd_color, sf::Color trd_color);
-  void init(const ShowcaseContext ctx);
-  void update(const ser::GameState& gs);
+  void init(const ShowcaseContext& ctx);
+  void update(const ser::GameState& gs, const ShowcaseContext& ctx);
   void update(const float dx);
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };

@@ -46,17 +46,17 @@ struct GameContext {
   Endpoint peer_endpoint;
 };
 
-EXPORT void Init(const GameContext context);
+EXPORT void Init(GameContext context);
 
-EXPORT void SetLocation(const Location location);
+EXPORT void SetLocation(Location location);
 
-EXPORT Endpoint GetPublicEndpoint(const int local_port);
+EXPORT Endpoint GetPublicEndpoint(int local_port);
 
 EXPORT void StartGame();
 
 EXPORT void StopGame();
 
-EXPORT void Update(const Input input);
+EXPORT void Update(Input input);
 
 EXPORT void GetState(unsigned char* buf, int* length);
 

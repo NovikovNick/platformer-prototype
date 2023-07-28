@@ -108,6 +108,7 @@ static ser::Player convert(const platformer::Player& src, const bool fixed) {
   dst.set_current_health(src.current_health);
   dst.set_max_health(src.max_health);
   dst.set_attack_phase(convert(src.attack_phase));
+  dst.set_is_crouch(src.isCrouch());
   return dst;
 }
 static platformer::Player convert(const ser::Player& src) {

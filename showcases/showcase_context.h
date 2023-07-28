@@ -20,6 +20,12 @@ struct ShowcaseContext {
   int tick_rate;
   bool log_dx, log_player_state;
 
+  bool ctrl_pressed = false;
+  bool right_mouse_pressed = false;
+  int prev_mouse_x = 0, prev_mouse_y = 0;
+  int screen_offset_x = 0, screen_offset_y = 1000;
+  double scale = 1.0;
+
   ShowcaseContext()
       : tick_rate(60),
         log_dx(false),
@@ -27,11 +33,11 @@ struct ShowcaseContext {
         active_player_id(0),
         position_1st_player({192, 704}),
         position_2nd_player({96, 704}),
-        platforms({{0, 0, 864, 32, {0, 864}},
+        platforms({{0, 0, 1864, 32, {0, 864}},
                    {1, 0, 192, 32, {256, 608}},
                    {2, 0, 224, 32, {672, 736}},
                    {3, 0, 32, 256, {0, 640}},
-                   {4, 0, 32, 256, {864, 640}}}) {}
+                   {4, 0, 32, 256, {1864, 640}}}) {}
 
   void setLocalPublicEndpoint(const Endpoint endpoint) {
     std::string endpoint_str(

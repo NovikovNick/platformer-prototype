@@ -51,6 +51,7 @@ message Player{
   int32 current_health = 8;
   int32 max_health = 9;
   AttackPhase attack_phase = 10;
+  bool is_crouch = 11;
 }
 
 message GameState{

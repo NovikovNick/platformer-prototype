@@ -199,12 +199,12 @@ void GameState::calculateVelocity(const int player_id, const int player_input) {
       prev_state_date.on_state_out(player, melee_attack[player_id]);
 
     if (!prev_state_date.is_duck && curr_state_data.is_duck) {
-      player.obj.height_ = 64;
-      player.obj.position.y() += 64;
+      //player.obj.position.y() += 64;
     } else if (!curr_state_data.is_duck && prev_state_date.is_duck) {
-      player.obj.height_ = 128;
       player.obj.position.y() -= 64;
     }
+
+    player.obj.height_ = curr_state_data.is_duck ? 64 : 128;
 
     if (!input[kInputLeft] && !input[kInputRight]) {
       vel_x *= player.on_ground ? FIX{0.5} : FIX{0.9};

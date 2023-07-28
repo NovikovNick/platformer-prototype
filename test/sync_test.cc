@@ -47,6 +47,9 @@ int main() {
     auto [buf, length, checksum, input1, input2, p1, p2] = states[i];
     Serializer::deserialize(gs, buf, length);
     for (int j = i + 1; j < n; ++j) {
+      
+      debug("{} to {}\n", i, j);
+
       // Act: Perform advance frame operation
       gs->update(states[j - 1].input1, states[j - 1].input2);
       if (!Serializer::serialize(gs, &out, &length)) {

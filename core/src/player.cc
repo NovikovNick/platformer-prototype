@@ -28,4 +28,12 @@ void Player::updateState(const PlayerState new_state) {
 bool Player::is(const PlayerState other_state) const {
   return state == other_state;
 };
+
+
+bool Player::isCrouch() const {
+  return is(PlayerState::SQUAT)           //
+         || is(PlayerState::SQUAT_BLOCK)  //
+         || is(PlayerState::SQUAT_BLOCK_STUN);
+}
+
 }  // namespace platformer
