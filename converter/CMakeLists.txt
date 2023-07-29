@@ -4,19 +4,18 @@ target_compile_features(converter PUBLIC cxx_std_20)
 
 target_sources(converter 
 	INTERFACE 
-		"serializer.h"
+		"src/public/serializer.h"
 	PRIVATE
-		"serializer.cc")
+		"src/private/serializer.cc")
 target_link_libraries(converter 
 	PRIVATE
 		Platformer::core
 		Platformer::model
 )
 target_include_directories(converter 
-	PUBLIC
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-	PRIVATE
-		$<INSTALL_INTERFACE:./>
-)
+	PUBLIC 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/public>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src/public>)
+
 set_property(TARGET converter PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

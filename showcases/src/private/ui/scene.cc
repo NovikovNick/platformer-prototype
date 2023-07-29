@@ -1,4 +1,4 @@
-#include "scene.h"
+#include "ui/scene.h"
 
 namespace platformer {
 

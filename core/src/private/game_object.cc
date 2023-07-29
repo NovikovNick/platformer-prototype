@@ -5,6 +5,7 @@
 #include <fpm/math.hpp>   // For fpm::cos
 
 #include "util.h"
+
 namespace platformer {
 
 using namespace Eigen;

@@ -1,4 +1,4 @@
-#include "rect_shape.h"
+#include "ui/rect_shape.h"
 
 namespace platformer {
 RectShape::RectShape(const sf::Color color,

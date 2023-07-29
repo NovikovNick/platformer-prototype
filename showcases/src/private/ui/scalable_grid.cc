@@ -1,4 +1,4 @@
-#include "scalable_grid.h"
+#include "ui/scalable_grid.h"
 
 const static sf::Color kGreyColor(50, 50, 50);
 const static sf::Color kWhiteColor(100, 100, 100);

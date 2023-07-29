@@ -1,7 +1,7 @@
 ﻿find_package(Eigen3 3.4 REQUIRED)
 
-file(GLOB CORE_HDR "src/*.h")
-file(GLOB CORE_SRC "src/*.cc")
+file(GLOB CORE_HDR "src/public/*.h")
+file(GLOB CORE_SRC "src/private/*.cc")
 
 add_library(core STATIC)
 add_library (Platformer::core ALIAS core)
@@ -18,7 +18,7 @@ target_link_libraries(core
 		boost_ext::sml)
 target_include_directories(core 
 	PUBLIC 
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src>)
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/public>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src/public>)
 set_property(TARGET core PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

@@ -1,4 +1,4 @@
-#include "info.h"
+#include "ui/info.h"
 
 namespace platformer {
 

@@ -22,6 +22,10 @@ target_link_libraries(sync_showcase
         sfml-main
         imgui::imgui
         ImGui-SFML::ImGui-SFML)
+target_include_directories(sync_showcase 
+	PUBLIC 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/public>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src/public>)
 set_target_properties(sync_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
@@ -41,6 +45,10 @@ target_link_libraries(async_showcase
         sfml-main
         imgui::imgui
         ImGui-SFML::ImGui-SFML)
+target_include_directories(async_showcase 
+	PUBLIC 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/public>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src/public>)
 set_target_properties(async_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
@@ -60,6 +68,10 @@ target_link_libraries(ggpo_showcase
         sfml-main
         imgui::imgui
         ImGui-SFML::ImGui-SFML)
+target_include_directories(ggpo_showcase 
+	PUBLIC 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/public>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/src/public>)
 set_target_properties(ggpo_showcase 
     PROPERTIES
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"

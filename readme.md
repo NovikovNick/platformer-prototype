@@ -3,6 +3,8 @@
 # Platformer prototype
 The library was created as a Proof of Concept for using the Rollback Network to compensate lag in action games. Network part is implemented by [GGPO](https://www.ggpo.net/). To support a deterministic state used [fixed-point math library](https://github.com/MikeLankamp/fpm). Serialization/Deserialization is implemented by Protobuf. Also for debugging added a simple GUI on SFML+ImGui.
 
+The project uses [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
+
 Package manager - some of dependencies is loaded by vcpkg.
 
 Cmake builds the library in three variations:

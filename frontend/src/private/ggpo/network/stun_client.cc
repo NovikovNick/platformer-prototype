@@ -1,10 +1,10 @@
-﻿#include "stun_client.h"
+﻿#include "ggpo/network/stun_client.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "exception.h"
-#include "stun_protocol.h"
+#include "ggpo/network/exception.h"
+#include "ggpo/network/stun_protocol.h"
 
 namespace net {
 

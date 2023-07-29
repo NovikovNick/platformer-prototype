@@ -1,4 +1,4 @@
-#include "../game_loop_ticker.h"
+#include "game_loop_ticker.h"
 
 #include <Windows.h>
 

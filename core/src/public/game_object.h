@@ -7,6 +7,7 @@
 using FIX = fpm::fixed_16_16;
 using VECTOR_2 = Eigen::Vector2<FIX>;
 using VECTOR_3 = Eigen::Vector3<FIX>;
+
 namespace {
 constexpr int sum(const int n) {
   int res = 0;
@@ -45,6 +46,7 @@ const static FIX kJumpDelta = FIX{kJumpHeight} / FIX{sum(kJump)};
 namespace platformer {
 
 class GameObject {
+
  public:
   std::vector<VECTOR_2> mesh;
   int width_, height_;

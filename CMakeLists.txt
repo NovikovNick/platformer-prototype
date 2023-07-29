@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.21)
 project ("platformer"
-    VERSION 0.1.4
+    VERSION 0.1.5
     DESCRIPTION "Generic platformer library with rollback network"
     LANGUAGES CXX)
 

@@ -1,5 +1,5 @@
-#include "exception.h"
-#include "udp_socket.h"
+#include "ggpo/network/exception.h"
+#include "ggpo/network/udp_socket.h"
 
 namespace net {
 

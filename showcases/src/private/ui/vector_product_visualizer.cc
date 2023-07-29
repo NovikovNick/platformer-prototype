@@ -1,4 +1,4 @@
-﻿#include "vector_product_visualizer.h"
+﻿#include "ui/vector_product_visualizer.h"
 
 #include "util.h"
 
