@@ -7,15 +7,18 @@
 namespace platformer {
 class ScalableGrid : public sf::Drawable {
   sf::VertexArray grid_;
-  float unit_;
+  double scale_;
+  int cell_count_, cell_size_px_, screen_offset_x_, screen_offset_y_;
 
  public:
-  ScalableGrid(const int unit);
-  void update(const int delta);
+  ScalableGrid(int cell_size_px, int cell_count);
+
+  void update(double scale, int screen_offset_x, int screen_offset_y);
+
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
  private:
-  static void init(sf::VertexArray& grid_, const float unit);
+  void updateGridCoordinate();
 };
 };      // namespace platformer
 #endif  // PLATFORMER_UI_SCALABLE_GRID_H

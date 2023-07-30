@@ -9,7 +9,9 @@
 
 platformer::Info initInfo(sf::Color color);
 
-sf::RenderWindow openWindow(const std::string title);
+sf::RenderWindow openWindow(const std::string& title,
+                            const int screed_width,
+                            const int screed_height);
 
 std::string toString(const ser::AttackPhase& phase);
 

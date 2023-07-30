@@ -10,11 +10,13 @@ platformer::Info initInfo(sf::Color color) {
   return platformer::Info(font, color);
 }
 
-sf::RenderWindow openWindow(const std::string title) {
+sf::RenderWindow openWindow(const std::string& title,
+                            const int screed_width,
+                            const int screed_height) {
   sf::ContextSettings settings;
   settings.antialiasingLevel = 8;
-  auto mode = sf::VideoMode(896, 896);
-  auto style = sf::Style::Default;
+  auto mode = sf::VideoMode(screed_width, screed_height);
+  auto style = sf::Style::Default;  
   return sf::RenderWindow(mode, title, style, settings);
 };
 

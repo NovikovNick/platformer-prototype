@@ -50,7 +50,7 @@ class GameState {
  private:
   void calculateVelocity(const int player_id, const int player_input);
   void updatePlayerState(const int player_id, const int player_input);
-  bool checkPlatform(const int player_id);
+  bool isPlayerOnGround(const int player_id);
   void resolveDamage(const int player_id);
 };
 

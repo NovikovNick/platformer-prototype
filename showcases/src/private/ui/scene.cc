@@ -6,8 +6,8 @@ Scene::Scene(sf::Color fst_color, sf::Color snd_color, sf::Color trd_color)
     : fst_color(fst_color),
       snd_color(snd_color),
       trd_color(trd_color),
-      shapes_(std::vector<platformer::RectShape>()),
-      grid_(platformer::ScalableGrid(32)) {}
+      shapes_(std::vector<RectShape>()),
+      grid_(ScalableGrid(16, 40)) {}
 
 void Scene::init(const ShowcaseContext& ctx) {
   shapes_.clear();
@@ -26,6 +26,8 @@ void Scene::init(const ShowcaseContext& ctx) {
     shapes_.emplace_back(
         fst_color, it.width, it.height, it.position.x, it.position.y);
   }
+
+  grid_.update(ctx.scale, ctx.screen_offset_x, ctx.screen_offset_y);
 }
 
 void Scene::update(const ser::GameState& gs, const ShowcaseContext& ctx) {
@@ -34,6 +36,8 @@ void Scene::update(const ser::GameState& gs, const ShowcaseContext& ctx) {
   pivot_x = ctx.screen_offset_x;
   pivot_y = ctx.screen_offset_y;
   scale = ctx.scale;
+
+  grid_.update(ctx.scale, ctx.screen_offset_x, ctx.screen_offset_y);
 }
 
 void Scene::update(const float dx) {
@@ -45,13 +49,14 @@ void Scene::update(const float dx) {
     auto& prev_player = prev_game_state.players()[i - offset];
     auto& curr_player = curr_game_state.players()[i - offset];
 
+    auto prev_player_x = prev_player.obj().position().x();
+    auto prev_player_y = prev_player.obj().position().y();
+    auto curr_player_x = curr_player.obj().position().x();
+    auto curr_player_y = curr_player.obj().position().y();
+
     shapes_[i].update(
-        std::lerp(
-            prev_player.obj().position().x(), 
-            curr_player.obj().position().x(), dx) * scale + pivot_x,
-        std::lerp(
-            prev_player.obj().position().y(),
-            curr_player.obj().position().y(), dx) * -scale + pivot_y);
+        std::lerp(prev_player_x, curr_player_x, dx) * scale + pivot_x,
+        std::lerp(prev_player_y, curr_player_y, dx) * -scale + pivot_y);
 
     shapes_[i].updateSize(prev_player.obj().width() * scale,
                           prev_player.obj().height() * -scale);

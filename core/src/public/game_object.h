@@ -39,7 +39,7 @@ const static int kAccelerationX = 1;
 const static float kAccelerationGravity = 1.5f;
 const static int kMaxVelocityX = 12;
 const static int kMaxVelocityFall = 20;
-const static FIX kJumpDelta = FIX{kJumpHeight} / FIX{sum(kJump)};
+const static FIX kJumpDelta = -FIX{kJumpHeight} / FIX{sum(kJump)};
 
 }  // namespace
 

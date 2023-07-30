@@ -53,10 +53,12 @@ void GameState::update(const int p0_input, const int p1_input) {
     for (const auto& it : platforms_)
       CollistionService::resolveCollision(player.obj, it);
 
-    player.on_ground = checkPlatform(player_id);
+    player.on_ground = isPlayerOnGround(player_id);
 
     auto& vel_y = player.obj.velocity.y();
-    if (player.on_ground && vel_y > kZero) vel_y = kZero;
+    if (player.on_ground && vel_y < kZero) {
+      vel_y = kZero;
+    }
   }
 
   // 4. resolve player direction
@@ -113,17 +115,18 @@ GameState& GameState::operator=(const GameState& src) {
   return *this;
 };
 
-bool GameState::checkPlatform(const int player_id) {
+bool GameState::isPlayerOnGround(const int player_id) {
   auto& player = players_[player_id].obj;
   for (const auto& platform : platforms_) {
     auto [player_min_x, player_max_x] = player.getProjectionMinMax(0);
     auto [platform_min_x, platform_max_x] = platform.getProjectionMinMax(0);
 
-    auto [__, player_max_y] = player.getProjectionMinMax(1);
-    auto [platform_min_y, _] = platform.getProjectionMinMax(1);
+    auto [player_min_y, __] = player.getProjectionMinMax(1);
+    auto [_, platform_max_y] = platform.getProjectionMinMax(1);
 
-    if (player_max_y == platform_min_y && platform_max_x > player_min_x &&
-        player_max_x > platform_min_x) {
+    if (player_min_y == platform_max_y    //
+        && platform_max_x > player_min_x  //
+        && player_max_x > platform_min_x) {
       return true;
     }
   }
@@ -176,7 +179,7 @@ void GameState::calculateVelocity(const int player_id, const int player_input) {
   auto& vel_y = player.obj.velocity.y();
   auto prev_state = player.state;
 
-  if (!player.on_ground) vel_y += FIX{kAccelerationGravity};
+  if (!player.on_ground) vel_y -= FIX{kAccelerationGravity};
 
   if (prev_state == PlayerState::DEATH) {
     melee_attack[player_id].height_ = melee_attack[player_id].width_ = 0;
@@ -199,7 +202,7 @@ void GameState::calculateVelocity(const int player_id, const int player_input) {
       prev_state_date.on_state_out(player, melee_attack[player_id]);
 
     if (!prev_state_date.is_duck && curr_state_data.is_duck) {
-      //player.obj.position.y() += 64;
+      // player.obj.position.y() += 64;
     } else if (!curr_state_data.is_duck && prev_state_date.is_duck) {
       player.obj.position.y() -= 64;
     }
@@ -212,7 +215,7 @@ void GameState::calculateVelocity(const int player_id, const int player_input) {
     }
     vel_x = std::clamp(vel_x, FIX{-kMaxVelocityX}, FIX{kMaxVelocityX});
   }
-  vel_y = std::clamp(vel_y, -kJumpDelta * kJump, FIX{kMaxVelocityFall});
+  vel_y = std::clamp(vel_y, kJumpDelta * kJump, FIX{kMaxVelocityFall});
 };
 
 void GameState::updatePlayerState(const int player_id, const int player_input) {

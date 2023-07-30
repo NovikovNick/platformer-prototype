@@ -23,7 +23,7 @@ struct ShowcaseContext {
   bool ctrl_pressed = false;
   bool right_mouse_pressed = false;
   int prev_mouse_x = 0, prev_mouse_y = 0;
-  int screen_offset_x = 0, screen_offset_y = 1000;
+  int screen_offset_x = 0, screen_offset_y = 0;
   double scale = 1.0;
 
   ShowcaseContext()
@@ -31,13 +31,16 @@ struct ShowcaseContext {
         log_dx(false),
         log_player_state(false),
         active_player_id(0),
-        position_1st_player({192, 704}),
-        position_2nd_player({96, 704}),
-        platforms({{0, 0, 1864, 32, {0, 864}},
-                   {1, 0, 192, 32, {256, 608}},
-                   {2, 0, 224, 32, {672, 736}},
-                   {3, 0, 32, 256, {0, 640}},
-                   {4, 0, 32, 256, {1864, 640}}}) {}
+        position_1st_player({192, 32}),
+        position_2nd_player({96, 32}),
+        platforms({}) {
+    int size = 32;
+    int id = 0;
+    platforms.push_back({++id, 0, size * 40, size, {0, 0}});
+    platforms.push_back({++id, 0, size, size * 40, {0, 0}});
+    platforms.push_back({++id, 0, size, size * 40, {size * 40, 0}});
+    platforms.push_back({++id, 0, size * 40, size, {0, size * 39}});
+  }
 
   void setLocalPublicEndpoint(const Endpoint endpoint) {
     std::string endpoint_str(

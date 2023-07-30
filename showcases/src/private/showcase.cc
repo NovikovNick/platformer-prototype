@@ -24,10 +24,13 @@ int main(int argc, char* argv[]) {
   const static sf::Color kSndColor(255, 17, 17);
   const static sf::Color kTrdColor(255, 255, 255);
 
-  auto window = openWindow("Purgatorium");
+  auto window = openWindow("Platformer prototype", 960, 960);
   window.setFramerateLimit(60);
+  window.setPosition(
+      sf::Vector2i(sf::VideoMode::getDesktopMode().width / 2 - 960 / 2, 0));
 
   platformer::ShowcaseContext ctx;
+  ctx.screen_offset_y = 960;
   platformer::ShowcaseHUD hud(window);
 
   // Request a public IP from the STUN server
